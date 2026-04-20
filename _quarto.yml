@@ -10,6 +10,7 @@ book:
   language: pt
   repo-url: https://github.com/vsntos/senatebR-curso
   repo-actions: [edit, issue]
+  cover-image: img/cover.png
   sidebar:
     search: true
   chapters:
