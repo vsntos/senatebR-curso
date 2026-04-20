@@ -2,7 +2,7 @@
 
 Guia prático do pacote [`senatebR`](https://github.com/vsntos/senatebR) — acesso programático aos dados abertos do Senado Federal Brasileiro diretamente no R.
 
-📖 **[Leia o livro online](https://vsntos.github.io/senatebR-curso/)**
+**[Leia o livro online](https://vsntos.github.io/senatebR-curso/)**
 
 ---
 
