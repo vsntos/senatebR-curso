@@ -1,0 +1,221 @@
+# Estudos de Caso
+
+## Estudo de caso 1: Quem são os senadores mais ativos?
+
+Neste estudo, cruzamos presença em votações, número de discursos e participação em comissões para construir um índice de atividade parlamentar.
+
+```r
+library(senatebR)
+library(dplyr)
+library(ggplot2)
+
+# 1. Coletar dados base
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x))
+
+codigos <- senadores$CodigoParlamentar
+
+# 2. Presença em votações (2023)
+#    votacoes_SiglaDescricaoVoto: Sim, Não, P-NRV, Votou = presente; AP, MIS = ausente
+votacoes <- coletar_votacoes_multiplos(codigos, anos = 2023)
+
+presenca <- votacoes |>
+  mutate(presente = !votacoes_SiglaDescricaoVoto %in% c("AP", "MIS")) |>
+  group_by(codigo_senador) |>
+  summarise(taxa_presenca  = mean(presente, na.rm = TRUE),
+            total_votacoes = n(),
+            .groups = "drop")
+
+# 3. Volume de discursos (2023)
+#    extrair_pronunciamentos_multi() usa Codigo_Parlamentar (com sublinhado)
+pronunciamentos <- extrair_pronunciamentos_multi(
+  codigos_parlamentares = codigos,
+  anos                  = 2023
+)
+
+n_discursos <- pronunciamentos |>
+  count(Codigo_Parlamentar, name = "n_discursos")
+
+# 4. Participação em comissões
+#    obter_dados_comissoes_parlamentares() retorna CodigoParlamentar e
+#    IdentificacaoComissao.SiglaComissao
+comissoes <- obter_dados_comissoes_parlamentares(codigos)
+
+n_comissoes <- comissoes |>
+  count(CodigoParlamentar, name = "n_comissoes")
+
+# 5. Combinar e criar índice (z-score de cada dimensão)
+#    as.vector() converte a matrix retornada por scale() para vetor
+indice <- senadores |>
+  select(CodigoParlamentar, NomeParlamentar, SiglaPartidoParlamentar) |>
+  left_join(presenca,    by = c("CodigoParlamentar" = "codigo_senador")) |>
+  left_join(n_discursos, by = c("CodigoParlamentar" = "Codigo_Parlamentar")) |>
+  left_join(n_comissoes, by = "CodigoParlamentar") |>
+  mutate(across(
+    c(taxa_presenca, n_discursos, n_comissoes),
+    ~ as.vector(scale(.)),
+    .names = "{.col}_z"
+  )) |>
+  mutate(indice_atividade = taxa_presenca_z + n_discursos_z + n_comissoes_z) |>
+  arrange(desc(indice_atividade))
+
+# 6. Top 15
+indice |>
+  slice_head(n = 15) |>
+  ggplot(aes(x = reorder(NomeParlamentar, indice_atividade),
+             y = indice_atividade,
+             fill = SiglaPartidoParlamentar)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Índice de atividade parlamentar (2023)",
+    x = NULL, y = "Índice (z-score combinado)", fill = "Partido"
+  ) +
+  theme_minimal()
+```
+
+## Estudo de caso 2: Disciplina partidária nas votações
+
+Quanto os senadores seguem a orientação do seu líder de bancada?
+
+::: {.callout-note}
+Este estudo envolve múltiplas requisições à API (uma por data de sessão). Use `Sys.sleep(0.5)` entre chamadas para evitar sobrecarga. Com 20 datas, o processo leva cerca de 1–2 minutos.
+:::
+
+```r
+# 1. Votações nominais de 2023 — colunas reais:
+#    Votos.CodigoParlamentar, Votos.SiglaPartido, Votos.Voto, CodigoSessaoVotacao, DataSessao
+nominais <- extrair_votacoes_nominais_por_ano(anos = 2023) |>
+  filter(Secreta == "N",
+         Votos.Voto %in% c("Sim", "Não"))
+
+# 2. Orientações de bancada — uma requisição por data de sessão
+datas <- unique(nominais$DataSessao)[1:20]
+
+orientacoes <- lapply(datas, function(d) {
+  Sys.sleep(0.5)
+  tryCatch(
+    coletar_orientacao_votacao(data_sessao = d),
+    error = function(e) NULL
+  )
+}) |>
+  bind_rows()
+# orientacoes tem colunas: codigo_votacao, partido, voto (orientação do líder)
+
+# 3. Cruzar votos individuais (Votos.SiglaPartido) com orientação (partido)
+#    e votação (CodigoSessaoVotacao ↔ codigo_votacao)
+disciplina <- nominais |>
+  left_join(
+    orientacoes,
+    by = c("CodigoSessaoVotacao" = "codigo_votacao",
+           "Votos.SiglaPartido"  = "partido")
+  ) |>
+  filter(!is.na(voto),                          # orientação disponível
+         voto %in% c("Sim", "Não")) |>          # excluir "Liberado", "Obstrução"
+  mutate(seguiu_orientacao = Votos.Voto == voto) |>
+  group_by(Votos.SiglaPartido) |>
+  summarise(
+    disciplina = mean(seguiu_orientacao),
+    n_votos    = n(),
+    .groups    = "drop"
+  ) |>
+  filter(n_votos >= 20) |>
+  arrange(desc(disciplina))
+
+print(disciplina)
+```
+
+## Estudo de caso 3: Agenda legislativa e janelas eleitorais
+
+Investigue se o volume de apresentação de projetos aumenta em anos eleitorais.
+
+```r
+library(lubridate)
+
+materias <- materias_legislatura_atual()
+
+# AnoMateria contém apenas o ano (ex: "2024") — não há coluna de data completa
+materias |>
+  filter(!is.na(AnoMateria)) |>
+  mutate(
+    Ano = as.integer(AnoMateria),
+    # Anos eleitorais municipais: múltiplos de 4 (2020, 2024...)
+    # Anos eleitorais gerais: múltiplos de 4 + 2 (2022, 2026...)
+    ano_eleitoral = (Ano %% 4 == 2) | (Ano %% 4 == 0)
+  ) |>
+  count(Ano, ano_eleitoral) |>
+  ggplot(aes(x = Ano, y = n, fill = ano_eleitoral)) +
+  geom_col() +
+  scale_fill_manual(
+    values = c("FALSE" = "#5ba4cf", "TRUE" = "#e76f51"),
+    labels = c("Não eleitoral", "Eleitoral")
+  ) +
+  labs(
+    title = "Matérias apresentadas por ano",
+    subtitle = "Anos eleitorais em destaque (municipais e gerais)",
+    x = NULL, y = "Quantidade", fill = NULL
+  ) +
+  theme_minimal()
+```
+
+## Estudo de caso 4: Redes de coautoria
+
+Quais senadores apresentam matérias em conjunto com mais frequência?
+
+```r
+# install.packages("igraph")
+# install.packages("ggraph")
+library(igraph)
+library(ggraph)
+library(dplyr)
+library(tidyr)
+
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x))
+
+codigos  <- senadores$CodigoParlamentar[1:30]
+autorias <- coletar_autorias_parlamentares(cod_parlamentares = codigos)
+
+# Criar todos os pares de coautores por matéria (não apenas os dois primeiros)
+pares <- autorias |>
+  group_by(CodigoMateria) |>
+  filter(n() >= 2) |>
+  summarise(
+    # combn() gera todas as combinações de 2 autores
+    pares = list(as.data.frame(
+      t(combn(CodigoParlamentar, 2)),
+      stringsAsFactors = FALSE
+    )),
+    .groups = "drop"
+  ) |>
+  unnest(pares) |>
+  rename(autor1 = V1, autor2 = V2)
+
+# Contar frequência de cada par (peso da aresta)
+pares_freq <- pares |>
+  count(autor1, autor2, name = "peso")
+
+# Grafo ponderado
+g <- graph_from_data_frame(pares_freq, directed = FALSE)
+
+ggraph(g, layout = "fr") +
+  geom_edge_link(aes(width = peso), alpha = 0.4, color = "#5ba4cf") +
+  geom_node_point(size = 3, color = "#003580") +
+  geom_node_label(aes(label = name), repel = TRUE, size = 3,
+                  max.overlaps = 15) +
+  scale_edge_width(range = c(0.5, 3)) +
+  labs(title = "Rede de coautorias de matérias",
+       subtitle = "Espessura da aresta proporcional ao número de coautorias") +
+  theme_void()
+```
+
+::: {.callout-tip}
+## Indo além
+
+Combine `senatebR` com outras fontes de dados:
+
+- **Câmara dos Deputados**: pacote `congressbr` ou API em dados.camara.leg.br
+- **TSE**: dados eleitorais em dadosabertos.tse.jus.br
+- **Diário Oficial**: https://in.gov.br/servicos/diario-oficial-da-uniao
+- **IBGE / territórios**: pacote `geobr` para dados territoriais e mapas
+:::

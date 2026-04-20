@@ -1,0 +1,147 @@
+# Instalação e Configuração
+
+## Instalando o pacote
+
+O `senatebR` está disponível no CRAN e pode ser instalado com:
+
+```r
+install.packages("senatebR")
+```
+
+Para a versão de desenvolvimento (com as funcionalidades mais recentes):
+
+```r
+# install.packages("remotes")
+remotes::install_github("vsntos/senatebR")
+```
+
+## Carregando o pacote
+
+```r
+library(senatebR)
+```
+
+Ao carregar, todas as 36 funções ficam disponíveis. Para ver a lista completa:
+
+```r
+help(package = "senatebR")
+```
+
+## Verificando a conexão com a API
+
+Antes de iniciar qualquer análise, verifique se você consegue acessar a API:
+
+```r
+# Teste simples: busca lista de siglas ativas
+siglas <- extrair_siglas_ativas()
+head(siglas)
+#>   Sigla                     Descricao  DataInicio     DataFim
+#> 1   ACE Aviso da Comissão de Educação  2017-01-01  2024-09-18
+#> 2   ACL      Ato Conjunto Legislativo  2023-01-01        <NA>
+#> 3    AP              Ato da Presidência 2017-01-01        <NA>
+#> 4   APV     Ato da Presidência - Veto  2017-01-01        <NA>
+```
+
+As colunas retornadas por `extrair_siglas_ativas()`:
+
+| Coluna | Descrição |
+|---|---|
+| `Sigla` | Abreviação do tipo de matéria (ex: PL, PEC, MPV) |
+| `Descricao` | Nome completo do tipo |
+| `DataInicio` | Data a partir da qual a sigla passou a ser usada |
+| `DataFim` | Data em que a sigla foi desativada (`NA` = ainda ativa) |
+
+Se a função retornar um *data frame*, a conexão está funcionando. Se receber um `warning` com "Erro ao acessar", verifique sua conexão à internet.
+
+::: {.callout-tip}
+## Problemas comuns de conexão
+
+- **Timeout**: A API pode demorar em horários de pico. Tente novamente em alguns segundos.
+- **Firewall corporativo**: Redes universitárias ou empresariais podem bloquear o acesso. Teste em uma rede doméstica ou use VPN.
+- **API fora do ar**: Verifique o portal <https://dadosabertos.senado.leg.br/> diretamente no navegador.
+:::
+
+## Pacotes complementares recomendados
+
+Para tirar o máximo do `senatebR`, instale também:
+
+```r
+install.packages(c(
+  "dplyr",      # manipulação de dados
+  "ggplot2",    # visualização
+  "tidyr",      # organização de dados
+  "stringr",    # manipulação de texto
+  "lubridate",  # datas
+  "tidytext",   # análise de texto
+  "knitr",      # tabelas em relatórios
+  "gt"          # tabelas bonitas
+))
+```
+
+## Estrutura de um projeto típico
+
+Uma boa organização de projeto para análise com `senatebR`:
+
+```
+meu-projeto/
+├── data/
+│   ├── raw/          # dados coletados da API (nunca edite)
+│   └── processed/    # dados após limpeza
+├── R/
+│   ├── 01-coleta.R   # scripts de coleta
+│   ├── 02-limpeza.R  # tratamento dos dados
+│   └── 03-analise.R  # análises e visualizações
+├── output/
+│   ├── figuras/
+│   └── tabelas/
+└── relatorio.Rmd     # relatório final
+```
+
+::: {.callout-note}
+## Ambiente reproduzível
+
+Para garantir reprodutibilidade, registre as versões dos pacotes usados:
+
+```r
+sessionInfo()
+# ou
+renv::snapshot()  # usando o pacote renv
+```
+:::
+
+## Primeiro contato: uma análise em 5 minutos
+
+Veja a seguir um exemplo completo do que é possível fazer com poucas linhas:
+
+```r
+library(senatebR)
+library(dplyr)
+library(ggplot2)
+
+# 1. Coletar senadores da 57ª legislatura e simplificar nomes de colunas
+#    (as colunas vêm com prefixo "IdentificacaoParlamentar." do XML da API)
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))
+
+# 2. Contar por partido
+por_partido <- senadores |>
+  count(SiglaPartidoParlamentar, sort = TRUE) |>
+  slice_head(n = 10)
+
+# 3. Visualizar
+ggplot(por_partido,
+       aes(x = reorder(SiglaPartidoParlamentar, n),
+           y = n)) +
+  geom_col(fill = "#2c7bb6") +
+  coord_flip() +
+  labs(title = "Senadores por partido",
+       x = NULL, y = "Número de senadores") +
+  theme_minimal()
+```
+
+::: {.callout-note}
+O `rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x))` remove o prefixo que a API adiciona às colunas por conta da estrutura XML aninhada. Esse padrão será repetido em vários capítulos. Consulte a @sec-simplificando para mais detalhes.
+:::
+
+Nos próximos capítulos, exploraremos cada categoria de funções em detalhes.

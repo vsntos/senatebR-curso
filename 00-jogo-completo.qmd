@@ -1,0 +1,147 @@
+# O Jogo Completo {.unnumbered}
+
+Antes de aprender cada função do `senatebR`, veja o que é possível construir com ele.
+
+A análise abaixo responde uma pergunta clássica da ciência política brasileira: **quão unidos votam os partidos do Senado — e isso mudou ao longo do tempo?** Em quatro passos e menos de 40 linhas de código, vamos do zero a um gráfico pronto para publicação.
+
+## O resultado que vamos construir
+
+Ao final deste capítulo você terá produzido dois gráficos:
+
+1. A **composição atual do Senado** por partido — quem tem mais cadeiras
+2. A **coesão partidária nas votações nominais** de 2023 — quão disciplinados os partidos foram
+
+O segundo é o mais revelador: partidos com alta coesão votam em bloco; partidos com baixa coesão têm senadores que frequentemente divergem da maioria do seu grupo.
+
+## Passo 1 — Quem está no Senado?
+
+```r
+library(senatebR)
+library(dplyr)
+library(ggplot2)
+
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))
+
+senadores |>
+  count(SiglaPartidoParlamentar, sort = TRUE)
+#> # A tibble: 14 × 2
+#>    SiglaPartidoParlamentar     n
+#>  1 PL                         17
+#>  2 PSD                        14
+#>  3 MDB                         9
+#>  4 PT                          9
+#>  ...
+```
+
+`obter_dados_senadores_legislatura(57, 57)` retorna todos os senadores que exerceram mandato na 57ª legislatura. O `rename_with` remove o prefixo XML das colunas, e o `filter` descarta suplentes que nunca assumiram — o porquê está explicado em @sec-simplificando.
+
+## Passo 2 — Como votaram?
+
+```r
+nominais <- extrair_votacoes_nominais_por_ano(anos = 2023) |>
+  filter(
+    Secreta   == "N",
+    Votos.Voto %in% c("Sim", "Não", "Abstenção")
+  )
+
+nrow(nominais)
+#> [1] 8743   # ~8 700 votos individuais registrados em 2023
+```
+
+`extrair_votacoes_nominais_por_ano()` retorna o voto de cada senador em cada votação nominal pública. Filtramos para excluir votações secretas e registros de ausência.
+
+## Passo 3 — Calcular coesão
+
+A coesão mede a proporção de senadores que acompanhou o voto majoritário do seu partido em cada votação. Um partido com coesão 1,0 votou em bloco perfeito; com 0,5, metade divergiu.
+
+```r
+coesao <- nominais |>
+  group_by(Votos.SiglaPartido, CodigoSessaoVotacao) |>
+  mutate(
+    voto_maj = names(sort(table(Votos.Voto), decreasing = TRUE))[1]
+  ) |>
+  summarise(
+    coesao   = mean(Votos.Voto == voto_maj),
+    n_votos  = n(),
+    .groups  = "drop"
+  ) |>
+  filter(n_votos >= 3) |>
+  group_by(Votos.SiglaPartido) |>
+  summarise(coesao_media = mean(coesao), .groups = "drop") |>
+  arrange(desc(coesao_media))
+```
+
+## Passo 4 — Visualizar
+
+```r
+# Gráfico 1: composição do Senado
+senadores |>
+  count(SiglaPartidoParlamentar, sort = TRUE) |>
+  ggplot(aes(x = reorder(SiglaPartidoParlamentar, n), y = n)) +
+  geom_col(fill = "#003580") +
+  coord_flip() +
+  labs(
+    title   = "Composição do Senado Federal",
+    subtitle = "57ª Legislatura (2023–2027)",
+    x = NULL, y = "Senadores"
+  ) +
+  theme_minimal()
+
+# Gráfico 2: coesão partidária
+ggplot(coesao,
+       aes(x = reorder(Votos.SiglaPartido, coesao_media),
+           y = coesao_media)) +
+  geom_col(fill = "#003580") +
+  geom_hline(yintercept = mean(coesao$coesao_media),
+             linetype = "dashed", color = "#c9a84c") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(
+    title    = "Coesão partidária nas votações nominais abertas (2023)",
+    subtitle = "Linha tracejada = média geral | Apenas partidos com ≥ 3 senadores por votação",
+    x = NULL, y = "Coesão média"
+  ) +
+  theme_minimal()
+```
+
+## O que acabamos de fazer
+
+Em quatro passos e ~40 linhas:
+
+1. **Coletamos** a lista de senadores da legislatura atual
+2. **Baixamos** milhares de votos individuais via API
+3. **Calculamos** uma métrica de comportamento legislativo
+4. **Visualizamos** a distribuição por partido
+
+Esse é o ciclo completo do `senatebR`: coletar → transformar → analisar → comunicar.
+
+::: {.callout-tip}
+## Daqui para frente
+
+Os capítulos seguintes aprofundam cada parte desse ciclo:
+
+- **Cap. 3–4**: quem são os senadores e como eles se organizam em comissões
+- **Cap. 5–6**: quais matérias tramitam e como as votações funcionam em detalhe
+- **Cap. 7–8**: o que os senadores dizem e o que está na agenda
+- **Cap. 9–10**: como visualizar e cruzar todas essas fontes em análises completas
+
+Você não precisa ler linearmente — cada capítulo é independente. Mas se algo nos passos acima ficou obscuro, os capítulos de fundamentos (1–2) respondem as perguntas de instalação e configuração.
+:::
+
+::: {.callout-note}
+## Sobre o tempo de execução
+
+`extrair_votacoes_nominais_por_ano(anos = 2023)` faz uma requisição à API do Senado e pode demorar 5–15 segundos dependendo da conexão. Para evitar baixar os mesmos dados várias vezes durante uma sessão de trabalho, salve o resultado localmente:
+
+```r
+# Salvar
+saveRDS(nominais, "data/nominais_2023.rds")
+
+# Recarregar na próxima sessão
+nominais <- readRDS("data/nominais_2023.rds")
+```
+
+Essa prática — cache local com `saveRDS`/`readRDS` — é tratada em detalhe no capítulo de workflow.
+:::

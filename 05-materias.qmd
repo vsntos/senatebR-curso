@@ -1,0 +1,298 @@
+# Matérias Legislativas
+
+O que o Senado realmente legisla? A grande maioria das matérias nunca vira lei — elas tramitam, são arquivadas ou ficam paradas por anos. Este capítulo mostra como mapear o universo de propostas e identificar padrões de tramitação.
+
+::: {.callout-tip collapse="true"}
+## Funções deste capítulo
+
+| Função | O que retorna |
+|---|---|
+| `materias_legislatura_atual()` | Matérias da legislatura em curso |
+| `info_materia_temas()` | Temas/assuntos de matérias |
+| `extrair_situacoes_tramitacao()` | Situações de tramitação cadastradas |
+| `extrair_classificacoes_materia()` | Classificações/tipos de matéria |
+| `extrair_siglas_ativas()` | Siglas de tipos (PL, PEC, MPV...) |
+| `info_atualizacao_materias()` | Matérias atualizadas recentemente |
+:::
+
+
+## Tipos de matérias legislativas
+
+O Senado classifica as matérias por sigla:
+
+```r
+library(senatebR)
+
+siglas <- extrair_siglas_ativas()
+head(siglas)
+#> # A tibble: 6 × 4
+#>    Sigla Descricao                               DataInicio  DataFim
+#>    <chr> <chr>                                   <chr>       <chr>
+#>  1 ACE   Aviso da Comissão de Educação           2017-01-01  2024-09-18
+#>  2 ACL   Ato Conjunto Legislativo                2023-01-01  <NA>
+#>  3 AP    Ato da Presidência                      2017-01-01  <NA>
+#>  4 MPV   Medida Provisória                       2017-01-01  <NA>
+#>  5 PEC   Proposta de Emenda à Constituição       2017-01-01  <NA>
+#>  6 PL    Projeto de Lei                          2017-01-01  <NA>
+```
+
+As siglas mais comuns:
+
+| Sigla | Tipo |
+|---|---|
+| PL | Projeto de Lei |
+| PEC | Proposta de Emenda à Constituição |
+| MPV | Medida Provisória |
+| PLS | Projeto de Lei do Senado (nomenclatura anterior a 2019) |
+| PDL | Projeto de Decreto Legislativo |
+| PRS | Projeto de Resolução do Senado |
+
+## Matérias da legislatura atual
+
+```r
+# Todas as matérias em tramitação na legislatura atual
+materias <- materias_legislatura_atual()
+glimpse(materias)
+#> Rows: 4521
+#> Columns: 9
+#> $ CodigoMateria                  <chr> "158423", "158100", ...
+#> $ SiglaCasaIdentificacaoMateria  <chr> "SF", "SF", ...
+#> $ NomeCasaIdentificacaoMateria   <chr> "Senado Federal", ...
+#> $ SiglaSubtipoMateria            <chr> "PL", "PEC", "MPV", ...
+#> $ NumeroMateria                  <chr> "1234", "45", ...
+#> $ AnoMateria                     <chr> "2024", "2023", ...
+#> $ DescricaoIdentificacaoMateria  <chr> "PL 1234/2024", ...
+#> $ IndicadorTramitando            <chr> "S", "N", ...
+#> $ IdentificacaoProcesso          <chr> NA, NA, ...
+```
+
+::: {.callout-note}
+Esta função pode retornar mais de 4 000 linhas. Use os filtros abaixo para trabalhar com subconjuntos menores e evitar lentidão.
+
+**Atenção**: a coluna `AnoMateria` contém apenas o ano de apresentação (ex: `"2024"`), não uma data completa. Não há coluna de data no retorno desta função. Para obter a data e a ementa, use `info_atualizacao_materias()`.
+:::
+
+```r
+library(dplyr)
+
+# Filtrar apenas PECs
+pecs <- materias |>
+  filter(SiglaSubtipoMateria == "PEC")
+
+# Matérias em tramitação (IndicadorTramitando == "S")
+em_tramitacao <- materias |>
+  filter(IndicadorTramitando == "S")
+
+# Contagem por tipo
+materias |>
+  count(SiglaSubtipoMateria, sort = TRUE)
+#> # A tibble: 28 × 2
+#>    SiglaSubtipoMateria     n
+#>    <chr>               <int>
+#>  1 PL                   2841
+#>  2 PDL                   612
+#>  3 PEC                   210
+#>  4 PRS                   187
+#>  5 MPV                   143
+#>  ...
+```
+
+`IndicadorTramitando` assume dois valores:
+
+| Valor | Significado |
+|---|---|
+| `"S"` | Ainda em tramitação |
+| `"N"` | Tramitação encerrada |
+
+## Temas de matérias
+
+```r
+# Lista de temas/assuntos cadastrados
+temas <- info_materia_temas()
+head(temas)
+#> # A tibble: 6 × 5
+#>   Codigo AssuntoGeral     AssuntoEspecifico       DataInicio DataFim
+#>   <chr>  <chr>            <chr>                   <chr>      <chr>
+#> 1 1      Administração    Administração Pública    NA         NA
+#> 2 2      Agricultura      Reforma Agrária          NA         NA
+#> 3 3      Ciência          Tecnologia               NA         NA
+#> 4 4      Comunicações     Telecomunicações         NA         NA
+#> 5 5      Direitos Humanos Direitos Fundamentais    NA         NA
+#> 6 6      Economia         Finanças Públicas        NA         NA
+```
+
+As colunas:
+
+| Coluna | Descrição |
+|---|---|
+| `Codigo` | Código do tema |
+| `AssuntoGeral` | Área temática geral |
+| `AssuntoEspecifico` | Subtema específico |
+| `DataInicio` / `DataFim` | Vigência do tema no sistema |
+
+## Situações de tramitação
+
+```r
+situacoes <- extrair_situacoes_tramitacao()
+head(situacoes)
+#> # A tibble: 6 × 4
+#>   Codigo Sigla Descricao                           DataCriacao
+#>   <chr>  <chr> <chr>                               <chr>
+#> 1 1      APS   Aguardando Pauta no Senado          NA
+#> 2 2      AGC   Aguardando Complementação           NA
+#> 3 3      APR   Aguardando Promulgação               NA
+#> ...
+```
+
+As colunas:
+
+| Coluna | Descrição |
+|---|---|
+| `Codigo` | Código interno da situação |
+| `Sigla` | Sigla abreviada |
+| `Descricao` | Descrição completa |
+| `DataCriacao` | Data de criação no sistema |
+
+## Classificações de matéria
+
+```r
+classificacoes <- extrair_classificacoes_materia()
+head(classificacoes)
+#> # A tibble: 6 × 6
+#>   CodigoClasse NomeClasse         CodigoClassePai Nivel Tree  Path
+#>   <chr>        <chr>              <chr>           <chr> <chr> <chr>
+#> 1 1            Administração      NA              1     1     Administração
+#> 2 2            Administração Pública 1            2     1.2   Administração > ...
+#> ...
+```
+
+As colunas:
+
+| Coluna | Descrição |
+|---|---|
+| `CodigoClasse` | Código da classificação |
+| `NomeClasse` | Nome da classe temática |
+| `CodigoClassePai` | Código da classe superior (hierarquia) |
+| `Nivel` | Nível hierárquico (1 = raiz) |
+| `Tree` | Código completo na árvore |
+| `Path` | Caminho legível (ex: `"Administração > Administração Pública"`) |
+
+## Matérias atualizadas recentemente
+
+Use `info_atualizacao_materias()` para monitorar matérias que tiveram movimentação recente:
+
+```r
+# Matérias com atualização recente
+atualizadas <- info_atualizacao_materias()
+glimpse(atualizadas)
+#> Rows: 87
+#> Columns: 16
+#> $ TipoSubtipoMateria    <chr> "PL", "MPV", ...
+#> $ DataApresentacao      <chr> "2024-03-01", "2024-01-10", ...
+#> $ DataUltimaAtualizacao <chr> "2024-04-17", "2024-04-15", ...
+#> $ EmentaMateria         <chr> "Dispõe sobre crédito...", ...
+#> $ IndicadorTramitando   <chr> "S", "S", ...
+#> ...
+```
+
+::: {.callout-tip}
+`info_atualizacao_materias()` é útil para monitorar a pauta legislativa sem precisar baixar toda a lista de matérias a cada execução. Ela inclui a ementa (`EmentaMateria`) e a data de apresentação (`DataApresentacao`), que não estão disponíveis em `materias_legislatura_atual()`.
+:::
+
+## Análise: volume de matérias por tipo
+
+```r
+library(ggplot2)
+
+materias |>
+  count(SiglaSubtipoMateria, sort = TRUE) |>
+  slice_head(n = 8) |>
+  ggplot(aes(x = reorder(SiglaSubtipoMateria, n), y = n)) +
+  geom_col(fill = "#2d6a4f") +
+  coord_flip() +
+  labs(
+    title = "Matérias por tipo na legislatura atual",
+    x = "Tipo", y = "Quantidade"
+  ) +
+  theme_minimal()
+```
+
+## Análise: volume por ano de apresentação
+
+Como `AnoMateria` já é o ano em formato texto, basta converter para inteiro:
+
+```r
+materias |>
+  filter(!is.na(AnoMateria)) |>
+  mutate(Ano = as.integer(AnoMateria)) |>
+  count(Ano, SiglaSubtipoMateria) |>
+  filter(SiglaSubtipoMateria %in% c("PL", "PEC", "MPV")) |>
+  ggplot(aes(x = Ano, y = n, color = SiglaSubtipoMateria)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  labs(
+    title = "Volume de matérias ao longo do tempo",
+    x = "Ano", y = "Quantidade", color = "Tipo"
+  ) +
+  theme_minimal()
+```
+
+## Exercício
+
+::: {.callout-note icon=false}
+## Exercício 5.1
+
+PLs são muito mais comuns que PECs — mas quais tipos de matéria têm maior *taxa de tramitação ativa*? Em outras palavras, qual sigla gera mais projetos que ficam parados (`IndicadorTramitando == "N"`) versus os que continuam em análise?
+
+Além disso: os anos eleitorais (2022, 2024...) produzem mais ou menos matérias do que os anos não eleitorais? O que você esperaria encontrar — e o resultado confirma sua hipótese?
+
+```r
+materias <- materias_legislatura_atual()
+```
+:::
+
+::: {.callout-tip collapse="true"}
+## Uma resposta possível
+
+```r
+library(senatebR)
+library(dplyr)
+library(ggplot2)
+
+materias <- materias_legislatura_atual()
+
+# Taxa de tramitação ativa por tipo
+materias |>
+  group_by(SiglaSubtipoMateria) |>
+  summarise(
+    total       = n(),
+    tramitando  = sum(IndicadorTramitando == "S"),
+    taxa_ativa  = tramitando / total,
+    .groups     = "drop"
+  ) |>
+  filter(total >= 20) |>
+  arrange(desc(taxa_ativa))
+# MPVs tendem a ter alta taxa ativa (têm prazo legal) enquanto PLs acumulam muitos arquivados
+
+# Matérias por ano x anos eleitorais
+materias |>
+  filter(!is.na(AnoMateria)) |>
+  mutate(
+    Ano          = as.integer(AnoMateria),
+    ano_eleitoral = (Ano %% 2 == 0)
+  ) |>
+  count(Ano, ano_eleitoral) |>
+  ggplot(aes(x = Ano, y = n, fill = ano_eleitoral)) +
+  geom_col() +
+  scale_fill_manual(
+    values = c("FALSE" = "#5ba4cf", "TRUE" = "#e76f51"),
+    labels = c("Não eleitoral", "Eleitoral")
+  ) +
+  labs(title = "Matérias por ano de apresentação",
+       subtitle = "Anos eleitorais em destaque",
+       x = NULL, y = "Quantidade", fill = NULL) +
+  theme_minimal()
+```
+
+A hipótese mais comum é que anos eleitorais produzem mais PLs (ativismo legislativo para visibilidade). Os dados do Senado permitem testar isso — mas lembre que a 57ª legislatura começa em 2023, então anos anteriores refletem múltiplas legislaturas acumuladas.
+:::

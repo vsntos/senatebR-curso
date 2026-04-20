@@ -1,0 +1,227 @@
+# Comissões
+
+Grande parte do trabalho legislativo acontece fora do plenário, nas comissões temáticas. Saber em quais comissões um senador senta — e se há sobreposição entre senadores de diferentes partidos — revela muito sobre a estrutura de influência no Senado.
+
+::: {.callout-tip collapse="true"}
+## Funções deste capítulo
+
+| Função | Argumentos | O que retorna |
+|---|---|---|
+| `dados_comissoes()` | — | Lista de comissões permanentes (web scraping) |
+| `obter_dados_comissoes_parlamentares()` | `codigos_parlamentares` | Comissões por parlamentar |
+| `info_dados_reuniao_comissao()` | `codcol`, `data_inicio`, `data_fim` | Reuniões de uma comissão em período |
+| `info_dados_reuniao_nota()` | `codigo_reuniao` | Detalhes de uma reunião |
+| `extrair_notas_taquigraficas()` | `codigos_reuniao` | Texto das notas taquigráficas |
+| `processar_xml_liderancas()` | `codigos` | Lideranças em comissões |
+:::
+
+
+## Lista de comissões permanentes
+
+```r
+library(senatebR)
+
+comissoes <- dados_comissoes()
+comissoes
+```
+
+::: {.callout-warning}
+## `dados_comissoes()` atualmente não funciona
+
+`dados_comissoes()` obtém a lista de comissões por web scraping do site do Senado. No momento da escrita deste livro, a função retorna **0 linhas** porque o endpoint de scraping foi alterado. O comportamento pode mudar com atualizações futuras do pacote.
+
+**Alternativa**: use as siglas de comissão diretamente nas demais funções. As principais comissões permanentes do Senado são:
+
+| Sigla | Nome |
+|---|---|
+| `CCJ` | Comissão de Constituição, Justiça e Cidadania |
+| `CAE` | Comissão de Assuntos Econômicos |
+| `CAS` | Comissão de Assuntos Sociais |
+| `CI` | Comissão de Ciência, Tecnologia, Inovação e Informática |
+| `CRA` | Comissão de Agricultura e Reforma Agrária |
+| `CDR` | Comissão de Desenvolvimento Regional e Turismo |
+| `CE` | Comissão de Educação, Cultura e Esporte |
+| `CMA` | Comissão de Meio Ambiente |
+| `CRE` | Comissão de Relações Exteriores |
+
+Consulte a lista completa em <https://legis.senado.leg.br/comissoes/>.
+:::
+
+## Reuniões de uma comissão
+
+::: {.callout-warning}
+## `info_dados_reuniao_comissao()` atualmente com falha de conexão
+
+No momento da escrita deste livro, `info_dados_reuniao_comissao()` lança o erro `"cannot open the connection"` ao tentar acessar o endpoint da API. A função pode voltar a funcionar com atualizações futuras do pacote ou da API.
+:::
+
+A função `info_dados_reuniao_comissao()` retorna as reuniões de uma comissão em um período quando o endpoint está disponível:
+
+```r
+# Reuniões da CCJ — ajuste o período conforme necessário
+reunioes_ccj <- info_dados_reuniao_comissao(
+  codcol      = "CCJ",
+  data_inicio = "2024-01-01",
+  data_fim    = "2024-03-31"
+)
+```
+
+::: {.callout-tip}
+## Como usar os códigos de reunião
+
+O campo `CodigoReuniao` retornado por `info_dados_reuniao_comissao()` é o identificador usado nas funções seguintes:
+
+```r
+# 1. Listar reuniões e capturar os códigos
+reunioes <- info_dados_reuniao_comissao(
+  codcol      = "CCJ",
+  data_inicio = "2024-01-01",
+  data_fim    = "2024-03-31"
+)
+
+# 2. Usar os códigos para buscar notas taquigráficas
+codigos_reuniao <- reunioes$CodigoReuniao[1:3]
+notas <- extrair_notas_taquigraficas(codigos_reuniao = codigos_reuniao)
+```
+:::
+
+## Notas taquigráficas de uma reunião
+
+```r
+# Detalhes de uma reunião específica (código obtido acima)
+nota <- info_dados_reuniao_nota(codigo_reuniao = "9821")
+nota
+#> # A tibble: 1 × 6
+#>   CodigoReuniao DataRealizacao Comissao PautaReuniao UrlArquivo ...
+#>   <chr>         <chr>          <chr>    <chr>        <chr>
+#> 1 9821          2024-03-20     CCJ      Ordem do Dia https://...
+```
+
+## Texto integral das notas taquigráficas
+
+```r
+# Forneça os códigos das reuniões
+notas <- extrair_notas_taquigraficas(codigos_reuniao = codigos_reuniao)
+
+# Ver o texto de uma nota
+cat(substr(notas$Conteudo[1], 1, 500))
+#> O SR. PRESIDENTE (Rodrigo Pacheco) - Declaro aberta a 1ª Reunião
+#> Ordinária da Comissão de Constituição, Justiça e Cidadania...
+```
+
+## Composição de comissões por parlamentar
+
+```r
+codigos <- c("5672", "5386", "945")
+
+comissoes_parl <- obter_dados_comissoes_parlamentares(codigos)
+glimpse(comissoes_parl)
+#> Rows: 24
+#> Columns: 5
+#> $ CodigoParlamentar                <chr> "5672", "5672", "5386", ...
+#> $ NomeParlamentar                  <chr> "Alan Rick", ...
+#> $ IdentificacaoComissao.SiglaComissao <chr> "CCJ", "CAS", "CAE", ...
+#> $ IdentificacaoComissao.NomeComissao  <chr> "Comissão de Constituição...", ...
+#> $ TipoMembroComissao               <chr> "Titular", "Suplente", ...
+```
+
+## Análise: senadores com mais participação
+
+```r
+library(dplyr)
+library(ggplot2)
+
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x))
+
+codigos <- senadores$CodigoParlamentar[1:20]
+
+comissoes_df <- obter_dados_comissoes_parlamentares(codigos)
+
+comissoes_df |>
+  count(NomeParlamentar, sort = TRUE) |>
+  slice_head(n = 10) |>
+  ggplot(aes(x = reorder(NomeParlamentar, n), y = n)) +
+  geom_col(fill = "#1a6fa8") +
+  coord_flip() +
+  labs(title = "Senadores com mais participações em comissões",
+       x = NULL, y = "Número de comissões") +
+  theme_minimal()
+
+# A coluna de sigla de comissão tem prefixo XML:
+# comissoes_df$`IdentificacaoComissao.SiglaComissao`
+```
+
+## Exercício
+
+::: {.callout-note icon=false}
+## Exercício 4.1
+
+Senadores de oposição e situação costumam evitar sentar nas mesmas comissões — ou isso é um mito?
+
+Colete as comissões de 5 a 10 senadores de partidos diferentes (use os códigos obtidos em `obter_dados_senadores_legislatura(57, 57)`). Existe alguma comissão em que governo e oposição coexistem? Qual partido acumula mais cadeiras de comissão por senador?
+
+```r
+library(senatebR)
+library(dplyr)
+
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))
+
+# Escolha senadores de partidos distintos
+codigos <- senadores |>
+  group_by(SiglaPartidoParlamentar) |>
+  slice_head(n = 1) |>
+  pull(CodigoParlamentar) |>
+  head(8)
+
+comissoes_df <- obter_dados_comissoes_parlamentares(codigos)
+```
+:::
+
+::: {.callout-tip collapse="true"}
+## Uma resposta possível
+
+```r
+library(senatebR)
+library(dplyr)
+
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))
+
+codigos <- senadores |>
+  group_by(SiglaPartidoParlamentar) |>
+  slice_head(n = 1) |>
+  pull(CodigoParlamentar) |>
+  head(8)
+
+comissoes_df <- obter_dados_comissoes_parlamentares(codigos)
+
+# Quantas comissões por senador?
+comissoes_df |>
+  count(NomeParlamentar, sort = TRUE)
+
+# Quais comissões aparecem mais vezes (mais senadores participam)?
+comissoes_df |>
+  count(`IdentificacaoComissao.SiglaComissao`, sort = TRUE)
+
+# Interseção dois a dois entre todos os pares
+por_senador <- comissoes_df |>
+  select(CodigoParlamentar, NomeParlamentar,
+         SiglaComissao = `IdentificacaoComissao.SiglaComissao`) |>
+  split(~ NomeParlamentar)
+
+# Senadores que compartilham a CCJ, por exemplo:
+comissoes_df |>
+  filter(`IdentificacaoComissao.SiglaComissao` == "CCJ") |>
+  left_join(
+    senadores |> select(CodigoParlamentar, SiglaPartidoParlamentar),
+    by = "CodigoParlamentar"
+  ) |>
+  select(NomeParlamentar, SiglaPartidoParlamentar)
+```
+
+Você provavelmente vai encontrar que comissões como CCJ e CAE têm senadores de praticamente todos os partidos — a composição é proporcional à bancada, por regimento.
+:::

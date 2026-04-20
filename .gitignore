@@ -1,0 +1,15 @@
+_book/
+_freeze/
+.quarto/
+.Rproj.user
+.claude/
+
+# artefatos LaTeX
+*.log
+*.tex
+
+# arquivos gerados pela renderização local
+*.html
+*.pdf
+
+/.quarto/

@@ -1,0 +1,262 @@
+# Votações
+
+A votação nominal é onde a posição de cada senador fica registrada para sempre. Os partidos votam em bloco ou cada senador decide por conta própria? Qual é a taxa de aprovação das pautas do governo? Este capítulo mostra como extrair e analisar esse registro.
+
+::: {.callout-tip collapse="true"}
+## Funções deste capítulo
+
+| Função | O que retorna |
+|---|---|
+| `coletar_votacoes_multiplos()` | Votações de múltiplos senadores em múltiplos anos |
+| `extrair_votacoes_nominais_por_ano()` | Votações nominais detalhadas por ano (todos os senadores) |
+| `extrair_votacoes_por_ano()` | Votações em plenário por ano (agregado) |
+| `coletar_orientacao_votacao()` | Orientação de líderes de bancada |
+| `extrair_tipos_comparecimento()` | Tipos de comparecimento |
+| `extrair_tipos_decisao()` | Tipos de decisão em votações |
+:::
+
+
+## Votações de senadores específicos
+
+A função `coletar_votacoes_multiplos()` retorna o voto de cada senador em cada votação:
+
+```r
+library(senatebR)
+library(dplyr)
+
+# Coletar votações de 3 senadores no ano de 2023
+codigos <- c("5672", "5386", "945")
+anos    <- 2023
+
+votacoes <- coletar_votacoes_multiplos(codigos, anos)
+glimpse(votacoes)
+#> Rows: 296
+#> Columns: 43
+#> $ codigo_senador                   <chr> "5672", "5672", ...
+#> $ ano                              <dbl> 2023, 2023, ...
+#> $ votacoes_CodigoSessaoVotacao     <chr> "6674", "6677", ...
+#> $ votacoes_DescricaoVotacao        <chr> "Votação nominal do PL nº 1/2023", ...
+#> $ votacoes_DescricaoResultado      <chr> "Aprovado", "Rejeitado", ...
+#> $ votacoes_SiglaDescricaoVoto      <chr> "Sim", "Não", "AP", ...
+#> $ votacoes_DescricaoVoto           <chr> NA, NA, "Atividade parlamentar", ...
+#> $ votacoes_SessaoPlenaria.DataSessao <chr> "2023-02-08", ...
+#> $ votacoes_Materia.Sigla           <chr> "PDL", "PL", ...
+#> $ votacoes_Materia.Ementa          <chr> "Aprova o texto...", ...
+```
+
+Os valores de `votacoes_SiglaDescricaoVoto` (o voto efetivo do senador):
+
+| Sigla | Significado |
+|---|---|
+| `"Sim"` | Votou favoravelmente |
+| `"Não"` | Votou contrariamente |
+| `"Abstenção"` | Presente, mas se absteve formalmente |
+| `"P-NRV"` | Presente — Não registrou voto |
+| `"AP"` | Ausente — Atividade parlamentar |
+| `"MIS"` | Ausente — Missão da Casa no País/exterior |
+| `"Votou"` | Voto registrado em sessão secreta (sem discriminar Sim/Não) |
+
+::: {.callout-note}
+O campo `votacoes_DescricaoVoto` só é preenchido quando o senador está ausente e há uma justificativa registrada. Para o voto em si, use sempre `votacoes_SiglaDescricaoVoto`.
+:::
+
+## Votações nominais por ano
+
+`extrair_votacoes_nominais_por_ano()` retorna os votos de **todos** os senadores por votação — ideal para análises de coesão e disciplina:
+
+```r
+# Todas as votações nominais de 2023
+nominais_2023 <- extrair_votacoes_nominais_por_ano(anos = 2023)
+glimpse(nominais_2023)
+#> Rows: 11421
+#> Columns: 37
+#> $ CodigoSessaoVotacao     <chr> "6674", "6674", ...
+#> $ DataSessao              <chr> "2023-02-08", "2023-02-08", ...
+#> $ DescricaoVotacao        <chr> "Votação nominal do PDL nº 2/2023", ...
+#> $ Resultado               <chr> "A", "A", ...   # A=Aprovado, R=Rejeitado
+#> $ TotalVotosSim           <chr> "72", "72", ...
+#> $ TotalVotosNao           <chr> "2", "2", ...
+#> $ Votos.CodigoParlamentar <chr> "22", "5905", ...
+#> $ Votos.NomeParlamentar   <chr> "Esperidião Amin", "Rodrigo Cunha", ...
+#> $ Votos.SiglaPartido      <chr> "PP", "UNIÃO", ...
+#> $ Votos.SiglaUF           <chr> "SC", "AL", ...
+#> $ Votos.Voto              <chr> "Votou", "Votou", ...
+#> $ Votos.DescricaoVoto     <chr> NA, NA, ...
+#> $ SiglaMateria            <chr> "PDL", "PDL", ...
+#> $ Secreta                 <chr> "S", "N", ...
+#> $ Ano                     <dbl> 2023, 2023, ...
+```
+
+```r
+# Múltiplos anos
+nominais <- extrair_votacoes_nominais_por_ano(anos = c(2021, 2022, 2023))
+```
+
+## Votações em plenário por ano
+
+`extrair_votacoes_por_ano()` retorna o resultado agregado de cada votação (sem detalhe por senador):
+
+```r
+votacoes_2023 <- extrair_votacoes_por_ano(anos = 2023)
+glimpse(votacoes_2023)
+#> Rows: 141
+#> Columns: 22
+#> $ data_sessao             <chr> "2023-02-08", ...
+#> $ codigo_sessao_votacao   <chr> "6674", ...
+#> $ descricao_votacao       <chr> "Votação nominal do PDL nº 2/2023", ...
+#> $ resultado               <chr> "A", ...   # A=Aprovado, R=Rejeitado
+#> $ total_votos_sim         <chr> "72", ...
+#> $ total_votos_nao         <chr> "2", ...
+#> $ total_votos_abstencao   <chr> "1", ...
+#> $ sigla_materia           <chr> "PDL", ...
+#> $ numero_materia          <chr> "2", ...
+```
+
+## Orientação de bancadas
+
+```r
+# Orientação em uma data de sessão com votação registrada
+orientacao <- coletar_orientacao_votacao(data_sessao = "2023-09-20")
+orientacao
+```
+
+## Análise de coesão partidária
+
+Uma das análises mais clássicas em ciência política. Use `extrair_votacoes_nominais_por_ano()`, que já contém o voto de todos os senadores:
+
+```r
+library(ggplot2)
+
+# 1. Votações nominais abertas (excluir votações secretas)
+nominais <- extrair_votacoes_nominais_por_ano(anos = 2023) |>
+  filter(Secreta == "N",
+         Votos.Voto %in% c("Sim", "Não", "Abstenção"))
+
+# 2. Calcular coesão por partido e votação
+coesao <- nominais |>
+  group_by(Votos.SiglaPartido, CodigoSessaoVotacao) |>
+  mutate(
+    voto_majoritario = names(sort(table(Votos.Voto), decreasing = TRUE))[1]
+  ) |>
+  summarise(
+    coesao    = mean(Votos.Voto == voto_majoritario),
+    n_membros = n(),
+    .groups   = "drop"
+  ) |>
+  filter(n_membros >= 3) |>
+  group_by(Votos.SiglaPartido) |>
+  summarise(coesao_media = mean(coesao), .groups = "drop") |>
+  arrange(desc(coesao_media))
+
+# 3. Visualizar
+ggplot(coesao, aes(x = reorder(Votos.SiglaPartido, coesao_media),
+                   y = coesao_media)) +
+  geom_col(fill = "#e76f51") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = "Coesão partidária nas votações nominais abertas (2023)",
+    x = NULL, y = "Coesão média"
+  ) +
+  theme_minimal()
+```
+
+## Análise de similaridade de votação
+
+Quais senadores votam de forma mais parecida? Use a matriz de votos para calcular concordância entre pares:
+
+```r
+library(tidyr)
+
+# 1. Filtrar votações abertas com voto explícito
+nominais_limpos <- extrair_votacoes_nominais_por_ano(anos = 2023) |>
+  filter(Secreta == "N",
+         Votos.Voto %in% c("Sim", "Não")) |>
+  mutate(voto_num = ifelse(Votos.Voto == "Sim", 1, 0))
+
+# 2. Criar matriz senador × votação
+matriz_votos <- nominais_limpos |>
+  select(Votos.CodigoParlamentar, CodigoSessaoVotacao, voto_num) |>
+  pivot_wider(
+    names_from  = CodigoSessaoVotacao,
+    values_from = voto_num,
+    values_fill = NA
+  )
+
+# 3. Calcular proporção de concordância entre pares
+ids <- matriz_votos$Votos.CodigoParlamentar
+mat <- as.matrix(matriz_votos[, -1])
+
+concordancia <- outer(
+  seq_len(nrow(mat)),
+  seq_len(nrow(mat)),
+  Vectorize(function(i, j) {
+    em_comum <- !is.na(mat[i, ]) & !is.na(mat[j, ])
+    if (sum(em_comum) < 5) return(NA_real_)
+    mean(mat[i, em_comum] == mat[j, em_comum])
+  })
+)
+rownames(concordancia) <- ids
+colnames(concordancia) <- ids
+
+# 4. Top 10 pares com maior concordância
+as.data.frame(as.table(concordancia)) |>
+  setNames(c("senador_a", "senador_b", "concordancia")) |>
+  filter(senador_a < senador_b, !is.na(concordancia)) |>
+  arrange(desc(concordancia)) |>
+  slice_head(n = 10)
+```
+
+## Exercício
+
+::: {.callout-note icon=false}
+## Exercício 6.1
+
+Oposição vota "Não" por princípio ou avalia caso a caso?
+
+Tome os partidos com mais senadores (PL, PSD, MDB, PT) e calcule, para cada um, a **taxa de votos "Sim"** nas votações abertas de 2023. Você esperaria que partidos do governo votassem mais "Sim" do que a oposição? Os dados confirmam isso?
+
+Vá além: existe uma votação específica onde um partido surpreendeu — votou diferente do que sua posição pública sugeriria?
+
+```r
+nominais <- extrair_votacoes_nominais_por_ano(anos = 2023) |>
+  filter(Secreta == "N", Votos.Voto %in% c("Sim", "Não"))
+```
+:::
+
+::: {.callout-tip collapse="true"}
+## Uma resposta possível
+
+```r
+library(senatebR)
+library(dplyr)
+library(ggplot2)
+
+nominais <- extrair_votacoes_nominais_por_ano(anos = 2023) |>
+  filter(Secreta == "N", Votos.Voto %in% c("Sim", "Não"))
+
+taxa_sim <- nominais |>
+  group_by(Votos.SiglaPartido) |>
+  summarise(
+    total_votos = n(),
+    votos_sim   = sum(Votos.Voto == "Sim"),
+    taxa_sim    = votos_sim / total_votos,
+    .groups     = "drop"
+  ) |>
+  filter(total_votos >= 20) |>
+  arrange(desc(taxa_sim))
+
+ggplot(taxa_sim,
+       aes(x = reorder(Votos.SiglaPartido, taxa_sim), y = taxa_sim)) +
+  geom_col(fill = "#003580") +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "gray50") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Taxa de votos 'Sim' por partido (2023)",
+       subtitle = "Votações nominais abertas",
+       x = NULL, y = "% votos Sim") +
+  theme_minimal()
+```
+
+Partidos de governo tipicamente aparecem acima de 70% de "Sim"; oposição dura abaixo de 40%. O interessante é observar os partidos de centro, que oscilam dependendo da matéria.
+:::

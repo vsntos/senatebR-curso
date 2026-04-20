@@ -1,0 +1,136 @@
+# Workflow com a API do Senado
+
+Antes de mergulhar nas análises, vale estabelecer três hábitos que vão poupar tempo e frustração: organizar o projeto, proteger o código contra falhas da API, e evitar baixar os mesmos dados repetidamente.
+
+## Organize o projeto com `.Rproj`
+
+Sempre trabalhe dentro de um projeto R. Crie um via RStudio → File → New Project, ou no terminal:
+
+```r
+# Cria a estrutura de diretórios recomendada
+dir.create("data")    # dados brutos / cache local
+dir.create("output")  # gráficos e tabelas exportadas
+```
+
+Com um `.Rproj` ativo, todos os caminhos relativos (`"data/nominais.rds"`) funcionam de qualquer máquina — sem `setwd()`.
+
+## Cache local: não bata na API duas vezes
+
+A API do Senado é pública e sem autenticação, mas algumas funções fazem dezenas de requisições HTTP (uma por senador, uma por ano, etc.). Baixar os mesmos dados repetidamente é lento e desnecessário.
+
+O padrão recomendado é **baixar uma vez, salvar, reutilizar**:
+
+```r
+caminho <- "data/nominais_2023.rds"
+
+if (file.exists(caminho)) {
+  nominais <- readRDS(caminho)
+} else {
+  nominais <- extrair_votacoes_nominais_por_ano(anos = 2023)
+  saveRDS(nominais, caminho)
+}
+```
+
+Esse bloco: verifica se o arquivo já existe; se sim, lê do disco (instantâneo); se não, baixa da API e salva para a próxima vez.
+
+::: {.callout-tip}
+Use `saveRDS` para objetos R intermediários e `readr::write_csv` / `readr::read_csv` quando precisar abrir o arquivo em outro software (Excel, Python, etc.).
+:::
+
+## Proteção contra falhas com `tryCatch`
+
+A API pode falhar por timeout, instabilidade do servidor, ou código inexistente. Sem proteção, um erro interrompe todo o script. `tryCatch` captura o erro e deixa o código continuar:
+
+```r
+resultado <- tryCatch(
+  extrair_discursos(codigo_senador = "5672",
+                    data_inicio    = "2023-01-01",
+                    data_fim       = "2023-12-31"),
+  error = function(e) {
+    message("Falha ao coletar senador 5672: ", conditionMessage(e))
+    NULL   # retorna NULL em vez de parar
+  }
+)
+```
+
+Quando você itera sobre vários senadores, combine `tryCatch` com `lapply`:
+
+```r
+codigos <- c("5672", "5386", "945", "22")
+
+discursos_lista <- lapply(codigos, function(cod) {
+  Sys.sleep(0.3)   # pausa entre requisições para não sobrecarregar a API
+  tryCatch(
+    extrair_discursos(codigo_senador = cod,
+                      data_inicio    = "2023-01-01",
+                      data_fim       = "2023-12-31"),
+    error = function(e) {
+      message("Falha: ", cod, " — ", conditionMessage(e))
+      NULL
+    }
+  )
+})
+
+# Descartar NULLs e combinar
+discursos <- dplyr::bind_rows(Filter(Negate(is.null), discursos_lista))
+```
+
+## `Sys.sleep`: respeite o servidor
+
+Quando iterar sobre muitos senadores ou anos, adicione uma pausa de 0,3–0,5 segundos entre requisições. Isso evita receber erros HTTP 429 (Too Many Requests) e é uma boa prática de uso de APIs públicas.
+
+```r
+# Exemplo: coletar votações de 10 senadores com pausa
+resultados <- lapply(codigos[1:10], function(cod) {
+  Sys.sleep(0.5)
+  coletar_votacoes_multiplos(cod, anos = 2023)
+})
+```
+
+## Estilo de código
+
+Seguir um estilo consistente torna o código mais fácil de ler e revisar. Recomendações para este curso:
+
+```r
+# Use o pipe nativo do R 4.1+ (|>) em vez do pipe do magrittr (%>%)
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar))
+
+# Nomes de objetos: snake_case
+nominais_2023 <- extrair_votacoes_nominais_por_ano(anos = 2023)
+
+# Um argumento por linha quando a chamada fica longa
+agenda_junho <- info_agenda(
+  anos  = 2024,
+  meses = 6,
+  dias  = 1:30
+)
+```
+
+::: {.callout-tip}
+O pacote `styler` formata código automaticamente segundo o guia de estilo do tidyverse: `install.packages("styler")`. No RStudio, use o atalho **Ctrl+Shift+A** (Cmd+Shift+A no Mac) para indentar uma seleção.
+:::
+
+## Quando algo der errado
+
+Três passos antes de pedir ajuda:
+
+1. **Leia a mensagem de erro por completo** — R geralmente diz exatamente o que falhou
+2. **Verifique os nomes das colunas** com `names()` ou `glimpse()` — a maioria dos erros em análises com `senatebR` vem de coluna com nome diferente do esperado
+3. **Teste com um subconjunto menor** — se a função falha com 81 senadores, tente com 3 primeiro
+
+```r
+# Sempre útil para diagnóstico
+names(meu_dataframe)
+glimpse(meu_dataframe)
+class(meu_dataframe$coluna_problema)
+```
+
+Para erros da API, verifique:
+
+```r
+# Testa a conexão com a API do Senado
+httr::GET("https://legis.senado.leg.br/dadosabertos/senador/lista/atual")
+# Status 200 = API respondendo normalmente
+```

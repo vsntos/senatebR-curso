@@ -1,0 +1,217 @@
+# Comunicando Resultados com Quarto
+
+Você produziu uma análise. Agora precisa compartilhá-la. O Quarto — a plataforma que gera este próprio livro — permite transformar um script R em relatório HTML, PDF, apresentação de slides ou dashboard com pequenas mudanças de configuração.
+
+## O que é um documento Quarto
+
+Um arquivo `.qmd` mistura texto em Markdown com blocos de código R:
+
+````markdown
+---
+title: "Coesão Partidária no Senado"
+author: "Seu Nome"
+date: today
+format: html
+---
+
+## Análise
+
+```{{r}}
+library(senatebR)
+library(dplyr)
+
+nominais <- extrair_votacoes_nominais_por_ano(anos = 2023)
+```
+````
+
+O YAML no topo (`---`) controla o formato de saída. Mude `format: html` para `format: pdf` ou `format: revealjs` e o mesmo documento vira outro tipo de artefato.
+
+## Relatório HTML
+
+O formato mais versátil. Permite abas, gráficos interativos, código colapsável.
+
+```yaml
+---
+title: "Análise das Votações do Senado — 2023"
+author: "Seu Nome"
+date: today
+format:
+  html:
+    toc: true          # sumário lateral
+    code-fold: true    # código colapsável
+    theme: flatly
+execute:
+  echo: true
+  warning: false
+---
+```
+
+::: {.callout-tip}
+`code-fold: true` oculta o código por padrão mas permite que o leitor o expanda. Ideal para relatórios onde o público é misto (técnico e não técnico).
+:::
+
+## Relatório PDF
+
+Útil para documentos formais, artigos e TCCs. Requer uma instalação LaTeX — a mais simples é via `tinytex`:
+
+```r
+install.packages("tinytex")
+tinytex::install_tinytex()
+```
+
+```yaml
+---
+title: "Análise das Votações do Senado — 2023"
+format:
+  pdf:
+    documentclass: article
+    papersize: a4
+    lang: pt-BR
+    number-sections: true
+execute:
+  echo: false    # oculta o código no PDF — só os resultados
+---
+```
+
+## Apresentação de slides
+
+O formato `revealjs` gera apresentações HTML interativas a partir do mesmo código de análise. Separe slides com `##`:
+
+```yaml
+---
+title: "Senado em Números"
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    lang: pt-BR
+execute:
+  echo: false
+---
+
+## Composição por partido
+
+```{{r}}
+#| fig-width: 8
+#| fig-height: 5
+senadores |>
+  count(SiglaPartidoParlamentar, sort = TRUE) |>
+  ggplot(aes(reorder(SiglaPartidoParlamentar, n), n)) +
+  geom_col(fill = "#003580") +
+  coord_flip() +
+  theme_minimal()
+```
+
+## Coesão partidária
+
+```{{r}}
+# gráfico de coesão aqui
+```
+```
+
+## Controle de execução por bloco
+
+Cada bloco de código tem opções próprias com `#|`:
+
+```r
+#| echo: false      # não mostra o código
+#| warning: false   # suprime avisos
+#| fig-cap: "Composição do Senado Federal, 57ª Legislatura"
+#| fig-width: 8
+#| fig-height: 5
+#| cache: true      # reusa resultado se o código não mudou
+
+senadores |>
+  count(SiglaPartidoParlamentar) |>
+  ggplot(...)
+```
+
+::: {.callout-tip}
+## `cache: true` em blocos lentos
+
+Para blocos que chamam a API do Senado, use `#| cache: true`. O Quarto salva o resultado e pula a execução nas renderizações seguintes enquanto o código não mudar — equivalente ao `saveRDS/readRDS` do capítulo de workflow, mas automático.
+:::
+
+## Publicar na web com Quarto Pub
+
+O destino mais simples para publicar um documento Quarto publicamente:
+
+```bash
+# No terminal, dentro do diretório do projeto
+quarto publish quarto-pub
+```
+
+Na primeira vez, o comando abre o navegador para autenticação. Depois disso, uma linha atualiza a publicação.
+
+Alternativas:
+- **GitHub Pages**: `quarto publish gh-pages` (requer repositório no GitHub)
+- **Posit Connect / shinyapps.io**: para análises com elementos interativos Shiny
+- **Netlify**: `quarto publish netlify`
+
+## Exemplo completo: relatório de atividade parlamentar
+
+O bloco abaixo é um documento `.qmd` completo que pode ser renderizado diretamente:
+
+````markdown
+---
+title: "Atividade Parlamentar — Senado Federal 2023"
+date: today
+format:
+  html:
+    toc: true
+    code-fold: true
+    theme: flatly
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Composição do Senado
+
+```{{r}}
+library(senatebR)
+library(dplyr)
+library(ggplot2)
+
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))
+
+senadores |>
+  count(SiglaPartidoParlamentar, sort = TRUE) |>
+  ggplot(aes(reorder(SiglaPartidoParlamentar, n), n)) +
+  geom_col(fill = "#003580") + coord_flip() +
+  labs(title = "Senadores por partido", x = NULL, y = NULL) +
+  theme_minimal()
+```
+
+## Coesão nas votações
+
+```{{r}}
+nominais <- extrair_votacoes_nominais_por_ano(anos = 2023) |>
+  filter(Secreta == "N", Votos.Voto %in% c("Sim", "Não", "Abstenção"))
+
+coesao <- nominais |>
+  group_by(Votos.SiglaPartido, CodigoSessaoVotacao) |>
+  mutate(voto_maj = names(sort(table(Votos.Voto), decreasing = TRUE))[1]) |>
+  summarise(coesao = mean(Votos.Voto == voto_maj), n = n(), .groups = "drop") |>
+  filter(n >= 3) |>
+  group_by(Votos.SiglaPartido) |>
+  summarise(coesao_media = mean(coesao), .groups = "drop")
+
+ggplot(coesao, aes(reorder(Votos.SiglaPartido, coesao_media), coesao_media)) +
+  geom_col(fill = "#003580") + coord_flip() +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Coesão partidária (2023)", x = NULL, y = "Coesão média") +
+  theme_minimal()
+```
+````
+
+Salve como `relatorio.qmd` e renderize com:
+
+```r
+quarto::quarto_render("relatorio.qmd")
+```
+
+Ou pelo botão **Render** no RStudio.

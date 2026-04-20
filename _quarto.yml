@@ -1,0 +1,71 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "senatebR: Coletando e Analisando Dados do Senado Federal Brasileiro"
+  author: "Vinicius Santos"
+  date: today
+  date-format: "DD/MM/YYYY"
+  language: pt
+  repo-url: https://github.com/vsntos/senatebR-curso
+  repo-actions: [edit, issue]
+  sidebar:
+    search: true
+  chapters:
+    - index.qmd
+    - part: "O Jogo Completo"
+      chapters:
+        - 00-jogo-completo.qmd
+    - part: "Fundamentos"
+      chapters:
+        - 01-introducao.qmd
+        - 02-instalacao.qmd
+        - workflow.qmd
+    - part: "Atores Legislativos"
+      chapters:
+        - 03-senadores.qmd
+        - 04-comissoes.qmd
+    - part: "Atividade Legislativa"
+      chapters:
+        - 05-materias.qmd
+        - 06-votacoes.qmd
+    - part: "Comunicação e Agenda"
+      chapters:
+        - 07-discursos.qmd
+        - 08-agenda.qmd
+    - part: "Análise Aplicada"
+      chapters:
+        - 09-visualizacao.qmd
+        - 10-estudos-de-caso.qmd
+        - comunicacao.qmd
+    - referencias.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+    code-link: true
+    code-fold: false
+    code-tools: true
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    highlight-style: github
+    fig-align: center
+    fig-width: 8
+    fig-height: 5
+  # pdf:
+  #   documentclass: scrbook
+  #   papersize: a4
+  #   lang: pt-BR
+
+execute:
+  eval: false
+  echo: true
+  warning: false
+  message: false
+  cache: false

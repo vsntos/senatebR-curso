@@ -1,0 +1,47 @@
+# Prefácio {.unnumbered}
+
+Este livro é um guia prático para o pacote **senatebR**, que disponibiliza acesso programático aos dados abertos do Senado Federal Brasileiro diretamente no R.
+
+## Para quem é este curso?
+
+Este material é voltado para:
+
+- **Cientistas políticos e pesquisadores** que desejam analisar a atividade legislativa brasileira de forma reproduzível
+- **Jornalistas de dados** interessados em monitorar votações, discursos e tramitações
+- **Estudantes de ciência política e ciência de dados** em busca de dados reais para projetos e TCCs
+- **Servidores e analistas do setor público** que trabalham com informações legislativas
+
+## Pré-requisitos
+
+É esperado que você tenha:
+
+- Conhecimento básico de R (atribuição, funções, vetores)
+- Familiaridade com o conceito de *data frame*
+- R versão 4.1.0 ou superior instalado
+
+Não é necessário conhecimento de APIs, XML ou web scraping.
+
+## Como usar este livro
+
+**Comece pelo Jogo Completo** (cap. 0) — ele mostra em 40 linhas o que é possível construir com o pacote. Se algo parecer obscuro, os capítulos de fundamentos (1–2) respondem as perguntas de instalação e configuração.
+
+A partir daí, cada capítulo temático (3–8) é independente. Os capítulos de **Análise Aplicada** (9–10) cruzam múltiplas fontes e pressupõem familiaridade com os anteriores.
+
+O **capítulo de Workflow** (no final de Fundamentos) cobre hábitos importantes para trabalhar com APIs: cache local, tratamento de erros e organização de projeto. O **capítulo de Comunicação** mostra como transformar qualquer análise em relatório ou apresentação com Quarto.
+
+Todos os exemplos de código utilizam dados reais da API do Senado. Algumas consultas podem demorar alguns segundos dependendo da conexão e da carga do servidor.
+
+## Instalação rápida
+
+```r
+install.packages("senatebR")
+library(senatebR)
+```
+
+## Sobre o autor
+
+Vinicius Santos é Doutor em ciência política pela UFMG com interesse em comportamento legislativo e ciências sociais computacionais. O pacote `senatebR` foi desenvolvido para facilitar o acesso a dados legislativos brasileiros para a comunidade de pesquisa e analistas de relações governamentais.
+
+## Licença {.unnumbered}
+
+Este livro está disponível sob a licença [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.pt_BR). O código-fonte do pacote está disponível sob licença MIT.

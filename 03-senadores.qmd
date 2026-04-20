@@ -1,0 +1,270 @@
+# Senadores e Parlamentares
+
+O Senado Federal tem 81 cadeiras — três por estado. Mas quem são, de onde vêm e por quais partidos esses senadores foram eleitos? Este capítulo responde essas perguntas e mostra como navegar o histórico de mandatos, lideranças e formação dos parlamentares.
+
+::: {.callout-tip collapse="true"}
+## Funções deste capítulo
+
+| Função | Argumentos | O que retorna |
+|---|---|---|
+| `obter_dados_senadores_legislatura()` | `legislatura_inicio`, `legislatura_fim` | Senadores de uma legislatura |
+| `get_afastados()` | — | Senadores atualmente afastados |
+| `processar_xml_mandatos()` | `codigos` | Histórico de mandatos |
+| `processar_xml_liderancas()` | `codigos` | Lideranças partidárias |
+| `processar_xml_profissoes()` | `codigos` | Profissões declaradas |
+| `processar_xml_apartes()` | `codigos` | Apartes em pronunciamentos |
+| `dados_academicos()` | `codigos` | Formação acadêmica |
+| `dados_relatorias_parlamentares()` | `codigos_parlamentares`, `anos` | Relatorias |
+| `coletar_autorias_parlamentares()` | `cod_parlamentares` | Autorias de matérias |
+:::
+
+
+## Lista de senadores por legislatura {#sec-simplificando}
+
+O argumento numérico refere-se ao número da legislatura. A 57ª legislatura (2023–2027) é a mais recente:
+
+```r
+library(senatebR)
+library(dplyr)
+
+senadores_raw <- obter_dados_senadores_legislatura(57, 57)
+glimpse(senadores_raw)
+#> Rows: 245
+#> Columns: 13
+#> $ IdentificacaoParlamentar.CodigoParlamentar       <chr> "5918", "6382", ...
+#> $ IdentificacaoParlamentar.NomeParlamentar         <chr> "Adilson Gomes", ...
+#> $ IdentificacaoParlamentar.NomeCompletoParlamentar <chr> "Adilson Gomes Silva", ...
+#> $ IdentificacaoParlamentar.SexoParlamentar         <chr> "Masculino", ...
+#> $ IdentificacaoParlamentar.FormaTratamento         <chr> "Senador ", ...
+#> $ IdentificacaoParlamentar.SiglaPartidoParlamentar <chr> NA, NA, "PV", ...
+#> $ IdentificacaoParlamentar.CodigoPublicoNaLegAtual <chr> NA, NA, NA, ...
+#> $ IdentificacaoParlamentar.UrlFotoParlamentar      <chr> NA, NA, NA, ...
+#> $ IdentificacaoParlamentar.UrlPaginaParlamentar    <chr> NA, NA, NA, ...
+#> $ IdentificacaoParlamentar.EmailParlamentar        <chr> NA, NA, NA, ...
+#> $ IdentificacaoParlamentar.UfParlamentar           <chr> NA, NA, NA, ...
+#> $ IdentificacaoParlamentar.UrlPaginaParticular     <chr> NA, NA, NA, ...
+#> $ Mandatos.Mandato                                 <list> [<data.frame[1 x 13]>], ...
+```
+
+::: {.callout-note}
+A função retorna **245 linhas** porque inclui titulares *e* suplentes que exerceram mandato na legislatura. Filtre por `!is.na(SiglaPartidoParlamentar)` e `!is.na(UfParlamentar)` para obter apenas os registros com dados completos (~84 linhas). As colunas têm o prefixo `IdentificacaoParlamentar.` pois os dados vêm de um XML aninhado.
+:::
+
+As principais colunas (após remoção do prefixo):
+
+| Coluna | Descrição |
+|---|---|
+| `CodigoParlamentar` | Código único na API — use em todas as outras funções |
+| `NomeParlamentar` | Nome parlamentar |
+| `NomeCompletoParlamentar` | Nome civil completo |
+| `SexoParlamentar` | `"Masculino"` ou `"Feminino"` |
+| `FormaTratamento` | `"Senador "` ou `"Senadora "` |
+| `SiglaPartidoParlamentar` | Sigla do partido atual (`NA` para suplentes sem exercício) |
+| `UfParlamentar` | Estado de representação (`NA` para suplentes sem exercício) |
+| `EmailParlamentar` | E-mail institucional |
+
+## Simplificando os nomes das colunas
+
+Para facilitar o uso, remova o prefixo e filtre os registros com dados completos:
+
+```r
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))
+
+senadores |>
+  count(SiglaPartidoParlamentar, sort = TRUE)
+#> # A tibble: 14 × 2
+#>    SiglaPartidoParlamentar     n
+#>    <chr>                   <int>
+#>  1 PL                         17
+#>  2 PSD                        14
+#>  3 MDB                         9
+#>  4 PT                          9
+#>  5 PP                          7
+#>  6 PSB                         7
+#>  7 REPUBLICANOS                6
+#>  8 UNIÃO                       4
+#>  9 PODEMOS                     3
+#> 10 PSDB                        3
+#> 11 PDT                         2
+#> 12 AVANTE                      1
+#> 13 NOVO                        1
+#> 14 SOLIDARIEDADE               1
+```
+
+## Análise da composição partidária
+
+```r
+senadores |>
+  count(SiglaPartidoParlamentar, sort = TRUE) |>
+  rename(Partido = SiglaPartidoParlamentar, Senadores = n)
+```
+
+## Mandatos históricos
+
+::: {.callout-important}
+## Códigos numéricos obrigatórios
+
+As funções `processar_xml_mandatos()`, `processar_xml_liderancas()`, `processar_xml_apartes()` e `processar_xml_profissoes()` exigem que os códigos sejam passados como **números** (não strings). Use `c(5672, 5982, 5386)` e não `c("5672", "5982", "5386")`.
+:::
+
+```r
+codigos <- c(5672, 5982, 5386)
+
+mandatos <- processar_xml_mandatos(codigos)
+glimpse(mandatos)
+#> Rows: 3
+#> Columns: 14
+#> $ CodigoSenador          <chr> "5672", "5982", "5386"
+#> $ NomeSenador            <chr> "Alan Rick", "Alessandro Vieira", "Professora Dorinha..."
+#> $ CodigoMandato          <chr> "596", "559", "615"
+#> $ UfParlamentar          <chr> "AC", "SE", "TO"
+#> $ NumeroLegislatura1     <chr> "57", "56", "57"
+#> $ DataInicioLegislatura1 <chr> "2023-02-01", "2019-02-01", "2023-02-01"
+#> $ DataFimLegislatura1    <chr> "2027-01-31", "2023-01-31", "2027-01-31"
+#> $ DescricaoParticipacao  <chr> "Titular", "Titular", "Titular"
+#> $ Suplentes              <chr> "Gemil Junior; Coronel Casagrande", ...
+#> $ Exercicios             <chr> "2023-02-01", "2019-02-01", "2023-02-01"
+#> $ CausaAfastamento       <chr> "", "", ""
+```
+
+::: {.callout-tip}
+## Como obter os códigos
+
+```r
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))
+
+senadores |>
+  filter(grepl("Pacheco", NomeParlamentar)) |>
+  select(CodigoParlamentar, NomeParlamentar, SiglaPartidoParlamentar)
+#> # A tibble: 1 × 3
+#>   CodigoParlamentar NomeParlamentar SiglaPartidoParlamentar
+#>   <chr>             <chr>           <chr>
+#> 1 5732              Rodrigo Pacheco PSB
+```
+:::
+
+## Formação acadêmica
+
+```r
+# dados_academicos() pode retornar NAs quando o senador não preencheu os dados
+academico <- dados_academicos(codigos)
+glimpse(academico)
+#> Rows: 3
+#> Columns: 3
+#> $ NomeCurso       <chr> NA, NA, NA
+#> $ GrauInstrucao   <chr> NA, NA, NA
+#> $ Estabelecimento <chr> NA, NA, NA
+```
+
+::: {.callout-note}
+`dados_academicos()` retorna as colunas `NomeCurso`, `GrauInstrucao` e `Estabelecimento`. Retorna `NA` quando o senador não preencheu o campo. Tente com senadores de legislaturas anteriores para obter mais dados preenchidos.
+:::
+
+## Lideranças, apartes e profissões
+
+```r
+# Use valores numéricos (sem aspas)
+codigos <- c(5672, 5982, 5386)
+
+liderancas <- processar_xml_liderancas(codigos)
+glimpse(liderancas)
+#> Rows: 20
+#> Columns: 16
+#> $ CodigoParlamentar        <chr> "5672", "5672", "5982", ...
+#> $ NomeParlamentar          <chr> "Alan Rick", "Alan Rick", "Alessandro Vieira", ...
+#> $ UnidadeLideranca         <chr> "Liderança de Partido no Senado Federal", ...
+#> $ SiglaPartido             <chr> "REPUBLICANOS", "UNIÃO", ...
+#> $ NomePartido              <chr> "REPUBLICANOS", "União Brasil", ...
+#> $ SiglaCasaLideranca       <chr> "SF", "SF", ...
+#> $ DescricaoTipoLideranca   <chr> "Líder do Senado Federal", "Vice-líder...", ...
+#> $ DataDesignacao           <chr> "2026-03-17", "2023-02-28", ...
+#> $ DataFim                  <chr> NA, "2025-01-31", ...
+
+apartes <- processar_xml_apartes(codigos)
+glimpse(apartes)
+#> Rows: 16
+#> Columns: 21
+#> $ CodigoParlamentar    <chr> "5672", "5672", ...
+#> $ NomeParlamentar      <chr> "Alan Rick", ...
+#> $ CodigoPronunciamento <chr> "501476", ...
+#> $ TipoUsoPalavra       <chr> "Discurso", ...
+#> $ DataPronunciamento   <chr> "2023-10-17", ...
+#> $ TextoResumo          <chr> "Elogios à atuação do Presidente do Senado...", ...
+#> $ UrlTexto             <chr> "https://www25.senado.leg.br/...", ...
+
+profissoes <- processar_xml_profissoes(codigos)
+#> # A tibble: 1 × 4
+#>   CodigoParlamentar NomeParlamentar        NomeProfissao IndicadorAtividadePrincipal
+#>   <chr>             <chr>                  <chr>         <chr>
+#> 1 5386              Professora Dorinha ... Professor(a)  Sim
+```
+
+## Exercício
+
+::: {.callout-note icon=false}
+## Exercício 3.1
+
+O Senado brasileiro tem representação feminina abaixo da média regional. Mas será que isso está mudando?
+
+Usando os dados das legislaturas 56 (2019–2023) e 57 (2023–2027), investigue: **a proporção de senadoras aumentou entre legislaturas?** O que muda quando você compara por partido — há partidos que nunca elegeram uma senadora?
+
+```r
+leg56 <- obter_dados_senadores_legislatura(56, 56) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))
+
+leg57 <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))
+```
+:::
+
+::: {.callout-tip collapse="true"}
+## Uma resposta possível
+
+```r
+library(senatebR)
+library(dplyr)
+library(ggplot2)
+
+leg56 <- obter_dados_senadores_legislatura(56, 56) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))
+
+leg57 <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x)) |>
+  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))
+
+# Proporção por legislatura
+bind_rows(
+  leg56 |> mutate(legislatura = "56ª (2019–2023)"),
+  leg57 |> mutate(legislatura = "57ª (2023–2027)")
+) |>
+  group_by(legislatura) |>
+  summarise(
+    total     = n(),
+    feminino  = sum(SexoParlamentar == "Feminino"),
+    proporcao = feminino / total
+  )
+#> # A tibble: 2 × 4
+#>   legislatura       total feminino proporcao
+#>   56ª (2019–2023)      84       13     0.155
+#>   57ª (2023–2027)      84       15     0.179
+
+# Proporção feminina por partido na 57ª
+leg57 |>
+  group_by(SiglaPartidoParlamentar) |>
+  summarise(
+    total    = n(),
+    feminino = sum(SexoParlamentar == "Feminino"),
+    prop_f   = feminino / total
+  ) |>
+  arrange(desc(prop_f))
+```
+
+A proporção cresceu levemente (15,5% → 17,9%), mas continua baixa. Alguns partidos têm zero senadoras na 57ª legislatura — o que levanta questões sobre recrutamento partidário que os dados de discursos e comissões (caps. 4 e 7) podem ajudar a investigar.
+:::

@@ -1,0 +1,183 @@
+# Visualização de Dados Legislativos
+
+::: {.callout-note}
+Os blocos de código neste capítulo produzem visualizações quando executados em R. As imagens não são renderizadas aqui — execute cada bloco localmente para ver o resultado.
+:::
+
+## Paleta de cores recomendada
+
+```r
+# Cores institucionais do Senado
+cores_senado <- c(
+  azul_escuro  = "#003580",
+  azul_medio   = "#1a6fa8",
+  azul_claro   = "#5ba4cf",
+  dourado      = "#c9a84c",
+  cinza_escuro = "#3d3d3d",
+  cinza_claro  = "#e8e8e8"
+)
+```
+
+Use `cores_senado[["azul_escuro"]]` para acessar uma cor específica pelo nome.
+
+## Composição do Senado: gráfico de barras
+
+```r
+library(senatebR)
+library(dplyr)
+library(ggplot2)
+
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x))
+
+senadores |>
+  count(SiglaPartidoParlamentar, sort = TRUE) |>
+  ggplot(aes(x = reorder(SiglaPartidoParlamentar, n), y = n,
+             fill = n > 5)) +
+  geom_col(show.legend = FALSE) +
+  scale_fill_manual(values = c("FALSE" = "#5ba4cf", "TRUE" = "#003580")) +
+  coord_flip() +
+  labs(
+    title    = "Composição do Senado Federal por partido",
+    subtitle = "57ª Legislatura (2023–2027)",
+    x = NULL, y = "Número de senadores",
+    caption  = "Fonte: API do Senado Federal via senatebR"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+## Presença nas votações: gráfico de barras com gradiente de cor
+
+O gráfico abaixo mostra a taxa de presença individual de cada senador. Embora seja às vezes chamado de "heatmap", trata-se de um gráfico de barras horizontais com cor proporcional à presença — a estrutura de dados não é matricial.
+
+```r
+library(tidyr)
+
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x))
+
+# Votações dos primeiros 15 senadores
+codigos  <- senadores$CodigoParlamentar[1:15]
+votacoes <- coletar_votacoes_multiplos(codigos, anos = 2023)
+
+# votacoes_SiglaDescricaoVoto: "Sim", "Não", "AP", "MIS", "P-NRV", "Votou"
+# Consideramos ausente: AP (Atividade parlamentar) e MIS (Missão)
+presenca <- votacoes |>
+  mutate(presente = !votacoes_SiglaDescricaoVoto %in% c("AP", "MIS")) |>
+  group_by(codigo_senador) |>
+  summarise(taxa_presenca = mean(presente, na.rm = TRUE), .groups = "drop") |>
+  left_join(
+    senadores |> select(CodigoParlamentar, NomeParlamentar, SiglaPartidoParlamentar),
+    by = c("codigo_senador" = "CodigoParlamentar")
+  )
+
+# Visualizar
+ggplot(presenca,
+       aes(x = reorder(NomeParlamentar, taxa_presenca),
+           y = taxa_presenca,
+           fill = taxa_presenca)) +
+  geom_col() +
+  scale_fill_gradient(low = "#f4a261", high = "#003580",
+                      labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent) +
+  coord_flip() +
+  labs(
+    title = "Taxa de presença nas votações nominais (2023)",
+    x = NULL, y = "Presença", fill = "Presença"
+  ) +
+  theme_minimal()
+```
+
+::: {.callout-tip}
+Para um heatmap matricial real (senadores × votações), use `geom_tile()` com a matriz de votos construída no Capítulo 6.
+:::
+
+## Evolução temporal: linha do tempo legislativa
+
+```r
+library(lubridate)
+
+materias <- materias_legislatura_atual()
+
+# AnoMateria contém apenas o ano (ex: "2024") — não há coluna de data completa
+materias |>
+  filter(!is.na(AnoMateria)) |>
+  mutate(Ano = as.integer(AnoMateria)) |>
+  count(Ano, SiglaSubtipoMateria) |>
+  filter(SiglaSubtipoMateria %in% c("PL", "PEC", "MPV")) |>
+  ggplot(aes(x = Ano, y = n, color = SiglaSubtipoMateria)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  scale_color_manual(values = c(PL = "#003580", PEC = "#c9a84c",
+                                MPV = "#e76f51")) +
+  labs(
+    title  = "Volume de matérias legislativas por tipo e ano",
+    x = NULL, y = "Quantidade", color = "Tipo"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+## Mapa do Brasil: senadores por estado
+
+```r
+# Requer o pacote geobr
+# install.packages("geobr")
+library(geobr)
+
+estados <- read_state(showProgress = FALSE)
+
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x))
+
+senadores_uf <- senadores |>
+  count(UfParlamentar, name = "n_senadores")
+
+mapa_dados <- estados |>
+  left_join(senadores_uf, by = c("abbrev_state" = "UfParlamentar"))
+
+ggplot(mapa_dados) +
+  geom_sf(aes(fill = n_senadores), color = "white", linewidth = 0.3) +
+  scale_fill_gradient(low = "#c6dbef", high = "#003580",
+                      name = "Senadores") +
+  labs(
+    title   = "Número de senadores em exercício por estado",
+    caption = "Fonte: senatebR"
+  ) +
+  theme_void() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+```
+
+::: {.callout-note}
+O pacote `geobr` precisa de conexão à internet para baixar as geometrias dos estados na primeira execução. Instale com `install.packages("geobr")` se ainda não tiver.
+:::
+
+## Tabelas com `gt`
+
+```r
+# install.packages("gt")
+library(gt)
+library(tidyr)
+
+senadores <- obter_dados_senadores_legislatura(57, 57) |>
+  rename_with(~ gsub("IdentificacaoParlamentar\\.", "", .x))
+
+senadores |>
+  count(SiglaPartidoParlamentar, UfParlamentar) |>
+  pivot_wider(names_from = UfParlamentar, values_from = n,
+              values_fill = 0) |>
+  gt(rowname_col = "SiglaPartidoParlamentar") |>
+  tab_header(
+    title    = "Senadores por partido e estado",
+    subtitle = "57ª Legislatura"
+  ) |>
+  data_color(
+    method  = "numeric",
+    palette = "Blues"
+  )
+```
+
+::: {.callout-tip}
+Tabelas `gt` são renderizadas automaticamente em documentos Quarto e R Markdown. No console interativo do R, use `print()` para visualizá-las no Viewer do RStudio.
+:::

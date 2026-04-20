@@ -1,0 +1,105 @@
+# O Senado Federal e seus Dados Abertos
+
+## O que é o Senado Federal?
+
+O Senado Federal é uma das duas casas do Congresso Nacional brasileiro, ao lado da Câmara dos Deputados. Composto por 81 senadores — três por estado e pelo Distrito Federal —, o Senado exerce funções legislativas, de controle e de representação dos estados.
+
+Entre suas principais atribuições estão:
+
+-   Apreciar projetos de lei aprovados pela Câmara
+-   Aprovar indicações para cargos do Poder Executivo e Judiciário
+-   Ratificar tratados internacionais
+-   Processar o Presidente da República em crimes de responsabilidade
+
+## A API de Dados Abertos
+
+O Senado Federal disponibiliza uma [API REST](https://dadosabertos.senado.leg.br/) com dados sobre senadores, votações, matérias legislativas, comissões, discursos e muito mais.
+
+A API segue o princípio de dados abertos e não exige autenticação para a maioria das consultas. Os dados são retornados em formato XML ou JSON.
+
+```
+https://legis.senado.leg.br/dadosabertos/
+```
+
+## Por que usar o senatebR?
+
+Acessar a API diretamente exige conhecimento de HTTP, parsing de XML/JSON e tratamento de erros de rede. O `senatebR` encapsula toda essa complexidade e retorna *data frames* prontos para análise.
+
+Comparação:
+
+::: panel-tabset
+### Sem senatebR
+
+``` r
+library(httr)
+library(xml2)
+
+url <- "https://legis.senado.leg.br/dadosabertos/senador/lista/atual"
+resp <- GET(url)
+doc  <- read_xml(content(resp, "text"))
+nos  <- xml_find_all(doc, ".//Parlamentar")
+
+dados <- data.frame(
+  codigo = xml_text(xml_find_all(nos, ".//CodigoParlamentar")),
+  nome   = xml_text(xml_find_all(nos, ".//NomeParlamentar")),
+  partido = xml_text(xml_find_all(nos, ".//SiglaPartidoParlamentar")),
+  uf     = xml_text(xml_find_all(nos, ".//UfParlamentar"))
+)
+```
+
+### Com senatebR
+
+``` r
+library(senatebR)
+
+dados <- obter_dados_senadores_legislatura(57, 57)
+```
+:::
+
+## Estrutura do pacote
+
+O `senatebR` organiza suas 36 funções em sete categorias:
+
+| Categoria | Funções |
+|---|---|
+| **Senadores** | `obter_dados_senadores_legislatura()`, `get_afastados()`, `processar_xml_mandatos()`, `processar_xml_liderancas()`, `processar_xml_profissoes()`, `processar_xml_apartes()`, `dados_academicos()`, `dados_relatorias_parlamentares()`, `coletar_autorias_parlamentares()` |
+| **Matérias** | `materias_legislatura_atual()`, `info_materia_temas()`, `extrair_situacoes_tramitacao()`, `extrair_classificacoes_materia()`, `extrair_siglas_ativas()`, `info_atualizacao_materias()` |
+| **Votações** | `coletar_votacoes_multiplos()`, `extrair_votacoes_nominais_por_ano()`, `extrair_votacoes_por_ano()`, `coletar_orientacao_votacao()`, `extrair_tipos_comparecimento()`, `extrair_tipos_decisao()` |
+| **Comissões** | `dados_comissoes()`, `obter_dados_comissoes_parlamentares()`, `info_dados_reuniao_comissao()`, `info_dados_reuniao_nota()`, `extrair_notas_taquigraficas()` |
+| **Discursos** | `extrair_discursos()`, `extrair_pronunciamentos_multi()` |
+| **Agenda** | `info_agenda()`, `info_vetos()`, `extrair_detalhes_vetos()`, `dados_vetos()` |
+| **Outros** | `coletar_medidas_provisorias_em_tramitacao()`, `coletar_medidas_provisorias_encerradas()`, `obter_dados_partidos()`, `extrair_siglas_ativas()` |
+
+## Requisitos
+
+- **R** ≥ 4.1.0
+- **Dependências principais**: `httr`, `xml2`, `dplyr`, `tidyr`, `purrr`, `stringr`
+- **Conexão à internet** obrigatória para coletar dados em tempo real
+
+## Boas práticas
+
+::: callout-important
+## Respeite os limites da API
+
+A API do Senado é um serviço público sem autenticação. Para evitar sobrecarga:
+
+- Use `Sys.sleep(0.5)` entre requisições em loop
+- Não colete o mesmo endpoint repetidamente — salve os dados localmente
+- Evite coletar múltiplos anos/senadores em paralelo sem pausa
+
+Não há um rate limit documentado, mas requisições muito frequentes podem resultar em erros temporários `HTTP 429` ou `503`.
+:::
+
+::: callout-tip
+## Cache de dados
+
+Para projetos reproduzíveis, salve os dados coletados:
+
+``` r
+dados <- obter_dados_senadores_legislatura(57, 57)
+saveRDS(dados, "data/senadores_57_legislatura.rds")
+
+# Na próxima sessão:
+dados <- readRDS("data/senadores_57_legislatura.rds")
+```
+:::

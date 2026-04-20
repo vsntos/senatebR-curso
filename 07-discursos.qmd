@@ -1,0 +1,294 @@
+# Discursos e Pronunciamentos
+
+Quem discursa mais no Senado — e sobre o quê? Os dados de pronunciamentos permitem mapear a agenda temática de cada senador, comparar o volume de fala entre partidos e identificar picos de atividade retórica em períodos de crise ou votações importantes.
+
+::: {.callout-tip collapse="true"}
+## Funções deste capítulo
+
+| Função | Argumentos | O que retorna |
+|---|---|---|
+| `extrair_discursos()` | `codigo_senador`, `data_inicio`, `data_fim` | Discursos de um senador em um período |
+| `extrair_pronunciamentos_multi()` | `codigos_parlamentares`, `anos` | Pronunciamentos de múltiplos senadores |
+| `extrair_notas_taquigraficas()` | `codigos_reuniao` | Texto integral das notas taquigráficas |
+:::
+
+
+## Discursos de um senador
+
+```r
+library(senatebR)
+
+# Discursos de um senador em um período
+discursos <- extrair_discursos(
+  codigo_senador = "5672",
+  data_inicio    = "2023-01-01",
+  data_fim       = "2023-12-31"
+)
+glimpse(discursos)
+#> Rows: 47
+#> Columns: 7
+#> $ CodigoPronunciamento <chr> "501476", "501312", ...
+#> $ DataPronunciamento   <chr> "2023-10-17", "2023-09-05", ...
+#> $ TextoResumo          <chr> "O senador discorreu sobre...", ...
+#> $ UrlTexto             <chr> "https://legis.senado.leg.br/...", ...
+#> $ UrlTextoBinario      <chr> NA, NA, ...
+#> $ DataSessao           <chr> "2023-10-17", "2023-09-05", ...
+#> $ HoraInicioSessao     <chr> "14:00", "10:00", ...
+```
+
+As principais colunas:
+
+| Coluna | Descrição |
+|---|---|
+| `CodigoPronunciamento` | Identificador único |
+| `DataPronunciamento` | Data do discurso (`"YYYY-MM-DD"`) |
+| `TextoResumo` | Resumo do conteúdo (texto curto) |
+| `UrlTexto` | Link para o texto integral no site do Senado |
+| `UrlTextoBinario` | Link para arquivo binário (PDF/DOC), quando disponível |
+| `DataSessao` | Data da sessão em que ocorreu o pronunciamento |
+| `HoraInicioSessao` | Hora de início da sessão |
+
+::: {.callout-tip}
+## Acessando o texto integral
+
+O campo `TextoResumo` contém apenas o resumo. Para obter o texto completo, acesse a URL em `UrlTexto`:
+
+```r
+library(httr)
+library(xml2)
+
+# Baixar o texto integral do primeiro discurso
+url_texto <- discursos$UrlTexto[1]
+
+if (!is.na(url_texto)) {
+  resp  <- GET(url_texto)
+  texto <- read_html(content(resp, "text", encoding = "UTF-8"))
+  # Extrair parágrafos do texto
+  paragrafos <- xml_text(xml_find_all(texto, ".//p"))
+  cat(paste(paragrafos, collapse = "\n"))
+}
+```
+
+Note que o layout das páginas pode variar — verifique a estrutura HTML caso o seletor `.//p` não retorne o conteúdo esperado.
+:::
+
+## Pronunciamentos de múltiplos senadores
+
+A função `extrair_pronunciamentos_multi()` aceita um vetor de códigos e um vetor de anos:
+
+```r
+codigos <- c("5672", "5386", "945")
+
+pronunciamentos <- extrair_pronunciamentos_multi(
+  codigos_parlamentares = codigos,
+  anos                  = c(2022, 2023)
+)
+glimpse(pronunciamentos)
+#> Rows: 84
+#> Columns: 8
+#> $ Codigo_Parlamentar    <chr> "5672", "5672", "5386", ...
+#> $ Ano                   <dbl> 2023, 2023, ...
+#> $ Data_Pronunciamento   <chr> "07/11/2023", "17/10/2023", ...
+#> $ Tipo_Pronunciamento   <chr> "Pela ordem", "Discussão", "Discurso", ...
+#> $ Casa                  <chr> "Senado Federal", "Senado Federal", ...
+#> $ Partido_UF            <chr> "UNIÃO/AC", "UNIÃO/AC", ...
+#> $ Resumo_Pronunciamento <chr> "O senador discorreu sobre...", ...
+#> $ Link_Pronunciamento   <chr> "https://...", ...
+```
+
+::: {.callout-important}
+## Atenção: nomes de colunas distintos entre funções
+
+`extrair_pronunciamentos_multi()` usa nomes com sublinhado (`Codigo_Parlamentar`, `Data_Pronunciamento`, `Resumo_Pronunciamento`, `Link_Pronunciamento`), enquanto `extrair_discursos()` usa CamelCase (`CodigoPronunciamento`, `DataPronunciamento`, `TextoResumo`, `UrlTexto`). Adapte seu código conforme a função usada.
+:::
+
+::: {.callout-note}
+O argumento `anos` recebe um vetor de anos inteiros (ex: `c(2022, 2023)`), não datas no formato texto.
+:::
+
+## Notas taquigráficas
+
+As notas taquigráficas contêm o texto integral do que foi dito nas reuniões de comissão. Use os códigos de reunião obtidos via `info_dados_reuniao_comissao()`:
+
+```r
+# Use os códigos de reunião (obtidos em info_dados_reuniao_comissao())
+notas <- extrair_notas_taquigraficas(codigos_reuniao = c("9821", "9756"))
+
+# Ver o texto de uma nota
+cat(substr(notas$Conteudo[1], 1, 500))
+#> O SR. PRESIDENTE (Rodrigo Pacheco) - Declaro aberta a reunião...
+```
+
+## Análise de frequência de discursos
+
+```r
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+
+# extrair_discursos() retorna DataPronunciamento em formato "YYYY-MM-DD"
+discursos |>
+  mutate(Mes = floor_date(as.Date(DataPronunciamento), "month")) |>
+  count(Mes) |>
+  ggplot(aes(x = Mes, y = n)) +
+  geom_line(color = "#6a4c93", linewidth = 1) +
+  geom_point(color = "#6a4c93") +
+  labs(
+    title = "Volume de discursos por mês",
+    x = NULL, y = "Número de discursos"
+  ) +
+  theme_minimal()
+
+# extrair_pronunciamentos_multi() usa Data_Pronunciamento em "DD/MM/YYYY"
+pronunciamentos |>
+  mutate(Mes = floor_date(as.Date(Data_Pronunciamento, "%d/%m/%Y"), "month")) |>
+  count(Codigo_Parlamentar, Mes) |>
+  ggplot(aes(x = Mes, y = n, color = Codigo_Parlamentar)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Volume de pronunciamentos mensais por senador",
+       x = NULL, y = "Número de pronunciamentos", color = "Código") +
+  theme_minimal()
+```
+
+## Análise de texto: palavras mais frequentes
+
+Use o pacote `tidytext` para tokenização robusta. Stopwords em português requerem o pacote `stopwords`:
+
+```r
+# install.packages(c("tidytext", "stopwords"))
+library(tidytext)
+library(stopwords)
+library(dplyr)
+
+# Stopwords em português
+sw_pt <- tibble(palavra = stopwords("pt", source = "stopwords-iso"))
+
+# Com extrair_discursos() — coluna TextoResumo
+palavras_freq <- discursos |>
+  filter(!is.na(TextoResumo)) |>
+  unnest_tokens(palavra, TextoResumo) |>
+  anti_join(sw_pt, by = "palavra") |>
+  filter(nchar(palavra) > 2) |>
+  count(palavra, sort = TRUE) |>
+  slice_head(n = 20)
+
+# Com extrair_pronunciamentos_multi() — coluna Resumo_Pronunciamento
+palavras_freq_multi <- pronunciamentos |>
+  filter(!is.na(Resumo_Pronunciamento)) |>
+  unnest_tokens(palavra, Resumo_Pronunciamento) |>
+  anti_join(sw_pt, by = "palavra") |>
+  filter(nchar(palavra) > 2) |>
+  count(palavra, sort = TRUE) |>
+  slice_head(n = 20)
+
+palavras_freq
+#> # A tibble: 20 × 2
+#>    palavra              n
+#>    <chr>            <int>
+#>  1 senhor             312
+#>  2 brasil             198
+#>  3 governo            187
+#>  4 aprovação          143
+#>  ...
+```
+
+::: {.callout-tip}
+## Análise de sentimentos e tópicos
+
+Para análises mais avançadas de texto, combine `senatebR` com pacotes de NLP:
+
+- `tidytext` — análise tidy de texto
+- `quanteda` — corpus e análise de frequência
+- `stm` — modelagem de tópicos estrutural
+- `lexiconPT` — léxico de sentimentos em português (disponível no CRAN)
+
+```r
+# install.packages("lexiconPT")
+library(lexiconPT)
+
+# Carregar léxico de sentimentos em português (OpLexicon v3.0)
+data("oplexicon_v3.0")
+
+sentimentos <- pronunciamentos |>
+  filter(!is.na(Resumo_Pronunciamento)) |>
+  unnest_tokens(palavra, Resumo_Pronunciamento) |>
+  inner_join(oplexicon_v3.0, by = c("palavra" = "term")) |>
+  group_by(Codigo_Parlamentar) |>
+  summarise(polaridade_media = mean(polarity), .groups = "drop")
+```
+
+::: {.callout-note}
+`sentimentBR` não está no CRAN. Use `lexiconPT` como alternativa mantida e disponível para instalação via `install.packages("lexiconPT")`.
+:::
+:::
+
+## Exercício
+
+::: {.callout-note icon=false}
+## Exercício 7.1
+
+Senadores de oposição discursam mais do que senadores da base do governo? A lógica seria que a oposição usa a tribuna como instrumento de visibilidade e pressão, enquanto a situação prefere agir nos bastidores.
+
+Escolha 4 senadores — 2 de partidos de governo, 2 de oposição. Compare o volume mensal de pronunciamentos em 2023. Há picos que coincidem com eventos políticos específicos? As palavras mais frequentes de cada grupo são diferentes?
+
+```r
+# Substitua pelos códigos de senadores que você escolheu
+codigos <- c("5672", "5386", "945", "22")
+pronunciamentos <- extrair_pronunciamentos_multi(
+  codigos_parlamentares = codigos,
+  anos                  = 2023
+)
+```
+:::
+
+::: {.callout-tip collapse="true"}
+## Uma resposta possível
+
+```r
+library(senatebR)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(tidytext)
+library(stopwords)
+
+codigos <- c("5672", "5386", "945", "22")
+
+pronunciamentos <- extrair_pronunciamentos_multi(
+  codigos_parlamentares = codigos,
+  anos                  = 2023
+)
+
+# Volume mensal — busque picos que coincidam com eventos políticos
+pronunciamentos |>
+  filter(!is.na(Data_Pronunciamento)) |>
+  mutate(Mes = floor_date(as.Date(Data_Pronunciamento, "%d/%m/%Y"), "month")) |>
+  count(Codigo_Parlamentar, Mes) |>
+  ggplot(aes(x = Mes, y = n, color = Codigo_Parlamentar)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Volume mensal de pronunciamentos (2023)",
+       x = NULL, y = "Pronunciamentos", color = "Código") +
+  theme_minimal()
+
+# Palavras mais frequentes por senador
+sw_pt <- tibble(palavra = stopwords("pt", source = "stopwords-iso"))
+
+pronunciamentos |>
+  filter(!is.na(Resumo_Pronunciamento)) |>
+  unnest_tokens(palavra, Resumo_Pronunciamento) |>
+  anti_join(sw_pt, by = "palavra") |>
+  filter(nchar(palavra) > 3) |>
+  count(Codigo_Parlamentar, palavra, sort = TRUE) |>
+  group_by(Codigo_Parlamentar) |>
+  slice_head(n = 10) |>
+  ggplot(aes(x = reorder(palavra, n), y = n)) +
+  geom_col(fill = "#6a4c93") +
+  coord_flip() +
+  facet_wrap(~ Codigo_Parlamentar, scales = "free_y") +
+  labs(title = "Top 10 palavras por senador (resumos, 2023)",
+       x = NULL, y = NULL) +
+  theme_minimal()
+```
+
+Senadores de oposição tendem a usar mais palavras como "denúncia" e "irregularidade"; senadores da base usam "aprovação" e "investimento". A análise de tópicos com `stm` (cap. 9) permite formalizar essa distinção.
+:::

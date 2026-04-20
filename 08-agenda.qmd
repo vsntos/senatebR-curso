@@ -1,0 +1,281 @@
+# Agenda, Vetos e Medidas Provisórias
+
+O que está acontecendo no Senado hoje? Quais MPs estão com o prazo esgotando? Quais vetos presidenciais aguardam apreciação? Este capítulo cobre as funções de monitoramento em tempo real da atividade legislativa.
+
+::: {.callout-tip collapse="true"}
+## Funções deste capítulo
+
+| Função | O que retorna |
+|---|---|
+| `info_agenda()` | Agenda de sessões e eventos por período |
+| `info_vetos()` | Lista de vetos presidenciais |
+| `extrair_detalhes_vetos()` | Metadados de vetos (web scraping) |
+| `dados_vetos()` | Partes vetadas de cada veto |
+| `coletar_medidas_provisorias_em_tramitacao()` | MPs com prazo em aberto |
+| `coletar_medidas_provisorias_encerradas()` | MPs com tramitação encerrada |
+| `obter_dados_partidos()` | Lista de partidos registrados |
+:::
+
+## Agenda do Senado
+
+A função `info_agenda()` recebe vetores de anos, meses e dias:
+
+```r
+library(senatebR)
+
+# Agenda de um mês específico — ajuste o ano e mês conforme necessário
+agenda <- info_agenda(
+  anos  = 2024,
+  meses = 6,
+  dias  = 1:30
+)
+glimpse(agenda)
+#> Rows: 18
+#> Columns: 6
+#> $ Data   <chr> "2024-06-04", "2024-06-05", ...
+#> $ Hora   <chr> "14:00", "10:00", ...
+#> $ Orgao  <chr> "Plenário do Senado", "CCJ", ...
+#> $ Evento <chr> "Sessão Deliberativa Ordinária", "Reunião de Comissão", ...
+#> $ Local  <chr> "Plenário Petrônio Portela", "Sala nº 2", ...
+#> $ Status <chr> "Realizado", "Realizado", ...
+```
+
+As colunas principais:
+
+| Coluna | Descrição |
+|---|---|
+| `Data` | Data da sessão ou evento |
+| `Hora` | Horário de início |
+| `Orgao` | Órgão responsável (plenário ou comissão) |
+| `Evento` | Descrição do tipo de evento |
+| `Local` | Local de realização |
+| `Status` | Situação (`"Realizado"`, `"Cancelado"`, etc.) |
+
+::: {.callout-tip}
+Para consultar a agenda da semana atual, use `lubridate` para extrair ano, mês e dias:
+
+```r
+library(lubridate)
+
+hoje <- Sys.Date()
+agenda_semana <- info_agenda(
+  anos  = year(hoje),
+  meses = month(hoje),
+  dias  = day(hoje):(day(hoje) + 6)
+)
+```
+:::
+
+## Vetos presidenciais
+
+O Senado aprecia os vetos presidenciais a projetos aprovados pelo Congresso.
+
+### Lista de vetos
+
+```r
+vetos <- info_vetos(pages = 1)
+glimpse(vetos)
+#> Rows: 20
+#> Columns: 6
+#> $ Veto          <chr> "VET 16110/2024", "VET 16049/2023", ...
+#> $ Link          <chr> "https://www.congressonacional.leg.br/...", ...
+#> $ Ementa        <chr> "Veto parcial ao PL 1234/2023...", ...
+#> $ Sobresta      <chr> "Não", "Sim", ...
+#> $ Materia_Vetada <chr> "PL 1234/2023", "PEC 45/2019", ...
+#> $ Norma_Gerada  <chr> NA, "Lei 14.973/2024", ...
+```
+
+As colunas:
+
+| Coluna | Descrição |
+|---|---|
+| `Veto` | Identificação do veto (ex: `"VET 16110/2024"`) |
+| `Link` | URL da página do veto no Congresso Nacional |
+| `Ementa` | Descrição resumida do veto |
+| `Sobresta` | Se o veto está com a tramitação sobrestada (`"Sim"`/`"Não"`) |
+| `Materia_Vetada` | Matéria que originou o veto |
+| `Norma_Gerada` | Lei gerada após apreciação (quando já aprovada) |
+
+### Detalhes de vetos via URL
+
+`extrair_detalhes_vetos()` e `dados_vetos()` trabalham com URLs das páginas de veto no site do Congresso. Use a coluna `Link` obtida de `info_vetos()`:
+
+```r
+vetos <- info_vetos(pages = 1)
+
+# Usar as URLs da coluna Link
+urls_vetos <- vetos$Link[1:2]
+
+# Metadados de cada veto
+detalhes <- extrair_detalhes_vetos(urls = urls_vetos)
+
+# Partes vetadas (artigos/parágrafos vetados)
+partes_vetadas <- dados_vetos(urls = urls_vetos)
+```
+
+::: {.callout-warning}
+`extrair_detalhes_vetos()` e `dados_vetos()` fazem web scraping do site do Congresso Nacional. Se o site estiver fora do ar ou mudar sua estrutura HTML, as funções podem retornar dados incompletos.
+:::
+
+## Medidas Provisórias
+
+As Medidas Provisórias têm força de lei imediata e precisam ser apreciadas pelo Congresso em até 120 dias.
+
+### Em tramitação
+
+```r
+mps_tramitacao <- coletar_medidas_provisorias_em_tramitacao()
+glimpse(mps_tramitacao)
+#> Rows: 12
+#> Columns: 5
+#> $ Link    <chr> "https://www.congressonacional.leg.br/...", ...
+#> $ Matéria <chr> "MPV 1234/2024", "MPV 1210/2024", ...
+#> $ Ementa  <chr> "Dispõe sobre crédito extraordinário...", ...
+#> $ Prazo   <chr> "12/07/2024", "06/05/2024", ...
+#> $ Status  <chr> "Em tramitação", "Em tramitação", ...
+```
+
+As colunas:
+
+| Coluna | Descrição |
+|---|---|
+| `Link` | URL da página da MP no Congresso Nacional |
+| `Matéria` | Identificação da MP (ex: `"MPV 1234/2024"`) |
+| `Ementa` | Descrição do conteúdo da MP |
+| `Prazo` | Data limite para votação no Congresso (formato `"DD/MM/YYYY"`) |
+| `Status` | Situação atual |
+
+### Encerradas
+
+O argumento `numero_ultima_pagina` controla quantas páginas serão coletadas (cada página retorna ~10 MPs):
+
+```r
+# Coletar a primeira página de MPs encerradas
+mps_encerradas <- coletar_medidas_provisorias_encerradas(numero_ultima_pagina = 1)
+glimpse(mps_encerradas)
+#> Rows: 10
+#> Columns: 6
+#> $ Link              <chr> "https://www.congressonacional.leg.br/...", ...
+#> $ MPV               <chr> "MPV 1200/2023", "MPV 1185/2023", ...
+#> $ Título            <chr> "Institui o programa...", ...
+#> $ Ementa            <chr> "Dispõe sobre...", ...
+#> $ Prazo.de.60.dias  <chr> "27/02/2024", "11/01/2024", ...
+#> $ Prazo.de.emendas  <chr> "17/01/2024", "02/12/2023", ...
+```
+
+As colunas:
+
+| Coluna | Descrição |
+|---|---|
+| `Link` | URL da página da MP |
+| `MPV` | Identificação da MP (ex: `"MPV 1200/2023"`) |
+| `Título` | Título abreviado |
+| `Ementa` | Descrição do conteúdo |
+| `Prazo.de.60.dias` | Prazo inicial de 60 dias (formato `"DD/MM/YYYY"`) |
+| `Prazo.de.emendas` | Prazo para emendas no Congresso |
+
+```r
+# Coletar mais páginas para uma amostra maior
+mps_encerradas_amplo <- coletar_medidas_provisorias_encerradas(numero_ultima_pagina = 5)
+```
+
+::: {.callout-note}
+Diferente de `coletar_medidas_provisorias_em_tramitacao()`, a versão encerrada **não possui** uma coluna `Status` com o destino final da MP (aprovada, caducada, etc.). Para identificar o destino, analise o campo `Ementa` ou `Título`.
+:::
+
+## Análise: prazo das Medidas Provisórias em tramitação
+
+```r
+library(dplyr)
+library(lubridate)
+
+mps_tramitacao <- coletar_medidas_provisorias_em_tramitacao()
+
+# Converter o prazo e calcular dias restantes
+mps_tramitacao |>
+  mutate(
+    prazo_data   = as.Date(Prazo, "%d/%m/%Y"),
+    dias_restantes = as.numeric(prazo_data - Sys.Date())
+  ) |>
+  arrange(dias_restantes) |>
+  select(Matéria, Ementa, prazo_data, dias_restantes)
+```
+
+## Partidos
+
+```r
+# Lista de partidos registrados
+partidos <- obter_dados_partidos()
+head(partidos)
+#> # A tibble: 6 × 5
+#>   Codigo Sigla  Nome                                DataCriacao DataExtincao
+#>   <chr>  <chr>  <chr>                               <chr>       <chr>
+#> 1 36     AVANTE Avante                              2017-09-06  <NA>
+#> 2 15     MDB    Movimento Democrático Brasileiro    1966-04-05  <NA>
+#> 3 20     NOVO   Partido Novo                        2011-02-12  <NA>
+#> 4 23     PL     Partido Liberal                     1985-01-01  <NA>
+#> 5 11     PP     Progressistas                       1995-11-30  <NA>
+#> 6 55     PSD    Partido Social Democrático          2011-09-27  <NA>
+```
+
+As colunas:
+
+| Coluna | Descrição |
+|---|---|
+| `Codigo` | Código interno do partido |
+| `Sigla` | Sigla (ex: `"PL"`, `"MDB"`) |
+| `Nome` | Nome completo |
+| `DataCriacao` | Data de fundação/registro |
+| `DataExtincao` | Data de extinção (`NA` para partidos ativos) |
+
+## Exercício
+
+::: {.callout-note icon=false}
+## Exercício 8.1
+
+Medidas Provisórias têm prazo de 120 dias — mas na prática isso é respeitado? Colete as MPs em tramitação e calcule quantos dias restam para cada uma. Alguma está com prazo negativo (já vencido)?
+
+Compare o ritmo de edição de MPs usando o número embutido na coluna `MPV` (ex: `"MPV 1234/2024"`): MPs com números maiores são mais recentes. Há algum padrão temporal — anos eleitorais editam mais MPs?
+
+```r
+mps_ativas     <- coletar_medidas_provisorias_em_tramitacao()
+mps_encerradas <- coletar_medidas_provisorias_encerradas(numero_ultima_pagina = 3)
+```
+:::
+
+::: {.callout-tip collapse="true"}
+## Uma resposta possível
+
+```r
+library(senatebR)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+
+mps_ativas <- coletar_medidas_provisorias_em_tramitacao()
+
+# Dias restantes para cada MP
+mps_com_prazo <- mps_ativas |>
+  mutate(
+    prazo_data     = as.Date(Prazo, "%d/%m/%Y"),
+    dias_restantes = as.numeric(prazo_data - Sys.Date())
+  )
+
+mps_com_prazo |>
+  arrange(dias_restantes) |>
+  select(Matéria, prazo_data, dias_restantes, Ementa)
+
+# Extrair o ano a partir do identificador "MPV XXXX/AAAA"
+mps_enc <- coletar_medidas_provisorias_encerradas(numero_ultima_pagina = 5)
+
+mps_enc |>
+  mutate(Ano = as.integer(stringr::str_extract(MPV, "\\d{4}$"))) |>
+  filter(!is.na(Ano)) |>
+  count(Ano) |>
+  ggplot(aes(x = Ano, y = n)) +
+  geom_col(fill = "#f4a261") +
+  labs(title = "MPs encerradas por ano de edição",
+       x = NULL, y = "Quantidade") +
+  theme_minimal()
+```
+:::
