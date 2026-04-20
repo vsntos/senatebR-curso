@@ -12,6 +12,7 @@ book:
   repo-actions: [edit, issue]
   cover-image: img/cover.png
   sidebar:
+    logo: img/cover.png
     search: true
   chapters:
     - index.qmd
