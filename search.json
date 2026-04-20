@@ -1,0 +1,1128 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "senatebR: Coletando e Analisando Dados do Senado Federal Brasileiro",
+    "section": "",
+    "text": "Prefácio\nEste livro é um guia prático para o pacote senatebR, que disponibiliza acesso programático aos dados abertos do Senado Federal Brasileiro diretamente no R.",
+    "crumbs": [
+      "Prefácio"
+    ]
+  },
+  {
+    "objectID": "index.html#para-quem-é-este-curso",
+    "href": "index.html#para-quem-é-este-curso",
+    "title": "senatebR: Coletando e Analisando Dados do Senado Federal Brasileiro",
+    "section": "Para quem é este curso?",
+    "text": "Para quem é este curso?\nEste material é voltado para:\n\nCientistas políticos e pesquisadores que desejam analisar a atividade legislativa brasileira de forma reproduzível\nJornalistas de dados interessados em monitorar votações, discursos e tramitações\nEstudantes de ciência política e ciência de dados em busca de dados reais para projetos e TCCs\nServidores e analistas do setor público que trabalham com informações legislativas",
+    "crumbs": [
+      "Prefácio"
+    ]
+  },
+  {
+    "objectID": "index.html#pré-requisitos",
+    "href": "index.html#pré-requisitos",
+    "title": "senatebR: Coletando e Analisando Dados do Senado Federal Brasileiro",
+    "section": "Pré-requisitos",
+    "text": "Pré-requisitos\nÉ esperado que você tenha:\n\nConhecimento básico de R (atribuição, funções, vetores)\nFamiliaridade com o conceito de data frame\nR versão 4.1.0 ou superior instalado\n\nNão é necessário conhecimento de APIs, XML ou web scraping.",
+    "crumbs": [
+      "Prefácio"
+    ]
+  },
+  {
+    "objectID": "index.html#como-usar-este-livro",
+    "href": "index.html#como-usar-este-livro",
+    "title": "senatebR: Coletando e Analisando Dados do Senado Federal Brasileiro",
+    "section": "Como usar este livro",
+    "text": "Como usar este livro\nComece pelo Jogo Completo (cap. 0) — ele mostra em 40 linhas o que é possível construir com o pacote. Se algo parecer obscuro, os capítulos de fundamentos (1–2) respondem as perguntas de instalação e configuração.\nA partir daí, cada capítulo temático (3–8) é independente. Os capítulos de Análise Aplicada (9–10) cruzam múltiplas fontes e pressupõem familiaridade com os anteriores.\nO capítulo de Workflow (no final de Fundamentos) cobre hábitos importantes para trabalhar com APIs: cache local, tratamento de erros e organização de projeto. O capítulo de Comunicação mostra como transformar qualquer análise em relatório ou apresentação com Quarto.\nTodos os exemplos de código utilizam dados reais da API do Senado. Algumas consultas podem demorar alguns segundos dependendo da conexão e da carga do servidor.",
+    "crumbs": [
+      "Prefácio"
+    ]
+  },
+  {
+    "objectID": "index.html#instalação-rápida",
+    "href": "index.html#instalação-rápida",
+    "title": "senatebR: Coletando e Analisando Dados do Senado Federal Brasileiro",
+    "section": "Instalação rápida",
+    "text": "Instalação rápida\ninstall.packages(\"senatebR\")\nlibrary(senatebR)",
+    "crumbs": [
+      "Prefácio"
+    ]
+  },
+  {
+    "objectID": "index.html#sobre-o-autor",
+    "href": "index.html#sobre-o-autor",
+    "title": "senatebR: Coletando e Analisando Dados do Senado Federal Brasileiro",
+    "section": "Sobre o autor",
+    "text": "Sobre o autor\nVinicius Santos é Doutor em ciência política pela UFMG com interesse em comportamento legislativo e ciências sociais computacionais. O pacote senatebR foi desenvolvido para facilitar o acesso a dados legislativos brasileiros para a comunidade de pesquisa e analistas de relações governamentais.",
+    "crumbs": [
+      "Prefácio"
+    ]
+  },
+  {
+    "objectID": "index.html#licença",
+    "href": "index.html#licença",
+    "title": "senatebR: Coletando e Analisando Dados do Senado Federal Brasileiro",
+    "section": "Licença",
+    "text": "Licença\nEste livro está disponível sob a licença CC BY 4.0. O código-fonte do pacote está disponível sob licença MIT.",
+    "crumbs": [
+      "Prefácio"
+    ]
+  },
+  {
+    "objectID": "00-jogo-completo.html",
+    "href": "00-jogo-completo.html",
+    "title": "O Jogo Completo",
+    "section": "",
+    "text": "O resultado que vamos construir\nAntes de aprender cada função do senatebR, veja o que é possível construir com ele.\nA análise abaixo responde uma pergunta clássica da ciência política brasileira: quão unidos votam os partidos do Senado — e isso mudou ao longo do tempo? Em quatro passos e menos de 40 linhas de código, vamos do zero a um gráfico pronto para publicação.\nAo final deste capítulo você terá produzido dois gráficos:\nO segundo é o mais revelador: partidos com alta coesão votam em bloco; partidos com baixa coesão têm senadores que frequentemente divergem da maioria do seu grupo.",
+    "crumbs": [
+      "O Jogo Completo",
+      "O Jogo Completo"
+    ]
+  },
+  {
+    "objectID": "00-jogo-completo.html#o-resultado-que-vamos-construir",
+    "href": "00-jogo-completo.html#o-resultado-que-vamos-construir",
+    "title": "O Jogo Completo",
+    "section": "",
+    "text": "A composição atual do Senado por partido — quem tem mais cadeiras\nA coesão partidária nas votações nominais de 2023 — quão disciplinados os partidos foram",
+    "crumbs": [
+      "O Jogo Completo",
+      "O Jogo Completo"
+    ]
+  },
+  {
+    "objectID": "00-jogo-completo.html#passo-1-quem-está-no-senado",
+    "href": "00-jogo-completo.html#passo-1-quem-está-no-senado",
+    "title": "O Jogo Completo",
+    "section": "Passo 1 — Quem está no Senado?",
+    "text": "Passo 1 — Quem está no Senado?\nlibrary(senatebR)\nlibrary(dplyr)\nlibrary(ggplot2)\n\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))\n\nsenadores |&gt;\n  count(SiglaPartidoParlamentar, sort = TRUE)\n#&gt; # A tibble: 14 × 2\n#&gt;    SiglaPartidoParlamentar     n\n#&gt;  1 PL                         17\n#&gt;  2 PSD                        14\n#&gt;  3 MDB                         9\n#&gt;  4 PT                          9\n#&gt;  ...\nobter_dados_senadores_legislatura(57, 57) retorna todos os senadores que exerceram mandato na 57ª legislatura. O rename_with remove o prefixo XML das colunas, e o filter descarta suplentes que nunca assumiram — o porquê está explicado em Lista de senadores por legislatura.",
+    "crumbs": [
+      "O Jogo Completo",
+      "O Jogo Completo"
+    ]
+  },
+  {
+    "objectID": "00-jogo-completo.html#passo-2-como-votaram",
+    "href": "00-jogo-completo.html#passo-2-como-votaram",
+    "title": "O Jogo Completo",
+    "section": "Passo 2 — Como votaram?",
+    "text": "Passo 2 — Como votaram?\nnominais &lt;- extrair_votacoes_nominais_por_ano(anos = 2023) |&gt;\n  filter(\n    Secreta   == \"N\",\n    Votos.Voto %in% c(\"Sim\", \"Não\", \"Abstenção\")\n  )\n\nnrow(nominais)\n#&gt; [1] 8743   # ~8 700 votos individuais registrados em 2023\nextrair_votacoes_nominais_por_ano() retorna o voto de cada senador em cada votação nominal pública. Filtramos para excluir votações secretas e registros de ausência.",
+    "crumbs": [
+      "O Jogo Completo",
+      "O Jogo Completo"
+    ]
+  },
+  {
+    "objectID": "00-jogo-completo.html#passo-3-calcular-coesão",
+    "href": "00-jogo-completo.html#passo-3-calcular-coesão",
+    "title": "O Jogo Completo",
+    "section": "Passo 3 — Calcular coesão",
+    "text": "Passo 3 — Calcular coesão\nA coesão mede a proporção de senadores que acompanhou o voto majoritário do seu partido em cada votação. Um partido com coesão 1,0 votou em bloco perfeito; com 0,5, metade divergiu.\ncoesao &lt;- nominais |&gt;\n  group_by(Votos.SiglaPartido, CodigoSessaoVotacao) |&gt;\n  mutate(\n    voto_maj = names(sort(table(Votos.Voto), decreasing = TRUE))[1]\n  ) |&gt;\n  summarise(\n    coesao   = mean(Votos.Voto == voto_maj),\n    n_votos  = n(),\n    .groups  = \"drop\"\n  ) |&gt;\n  filter(n_votos &gt;= 3) |&gt;\n  group_by(Votos.SiglaPartido) |&gt;\n  summarise(coesao_media = mean(coesao), .groups = \"drop\") |&gt;\n  arrange(desc(coesao_media))",
+    "crumbs": [
+      "O Jogo Completo",
+      "O Jogo Completo"
+    ]
+  },
+  {
+    "objectID": "00-jogo-completo.html#passo-4-visualizar",
+    "href": "00-jogo-completo.html#passo-4-visualizar",
+    "title": "O Jogo Completo",
+    "section": "Passo 4 — Visualizar",
+    "text": "Passo 4 — Visualizar\n# Gráfico 1: composição do Senado\nsenadores |&gt;\n  count(SiglaPartidoParlamentar, sort = TRUE) |&gt;\n  ggplot(aes(x = reorder(SiglaPartidoParlamentar, n), y = n)) +\n  geom_col(fill = \"#003580\") +\n  coord_flip() +\n  labs(\n    title   = \"Composição do Senado Federal\",\n    subtitle = \"57ª Legislatura (2023–2027)\",\n    x = NULL, y = \"Senadores\"\n  ) +\n  theme_minimal()\n\n# Gráfico 2: coesão partidária\nggplot(coesao,\n       aes(x = reorder(Votos.SiglaPartido, coesao_media),\n           y = coesao_media)) +\n  geom_col(fill = \"#003580\") +\n  geom_hline(yintercept = mean(coesao$coesao_media),\n             linetype = \"dashed\", color = \"#c9a84c\") +\n  coord_flip() +\n  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +\n  labs(\n    title    = \"Coesão partidária nas votações nominais abertas (2023)\",\n    subtitle = \"Linha tracejada = média geral | Apenas partidos com ≥ 3 senadores por votação\",\n    x = NULL, y = \"Coesão média\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "O Jogo Completo",
+      "O Jogo Completo"
+    ]
+  },
+  {
+    "objectID": "00-jogo-completo.html#o-que-acabamos-de-fazer",
+    "href": "00-jogo-completo.html#o-que-acabamos-de-fazer",
+    "title": "O Jogo Completo",
+    "section": "O que acabamos de fazer",
+    "text": "O que acabamos de fazer\nEm quatro passos e ~40 linhas:\n\nColetamos a lista de senadores da legislatura atual\nBaixamos milhares de votos individuais via API\nCalculamos uma métrica de comportamento legislativo\nVisualizamos a distribuição por partido\n\nEsse é o ciclo completo do senatebR: coletar → transformar → analisar → comunicar.\n\n\n\n\n\n\nTipDaqui para frente\n\n\n\nOs capítulos seguintes aprofundam cada parte desse ciclo:\n\nCap. 3–4: quem são os senadores e como eles se organizam em comissões\nCap. 5–6: quais matérias tramitam e como as votações funcionam em detalhe\nCap. 7–8: o que os senadores dizem e o que está na agenda\nCap. 9–10: como visualizar e cruzar todas essas fontes em análises completas\n\nVocê não precisa ler linearmente — cada capítulo é independente. Mas se algo nos passos acima ficou obscuro, os capítulos de fundamentos (1–2) respondem as perguntas de instalação e configuração.\n\n\n\n\n\n\n\n\nNoteSobre o tempo de execução\n\n\n\nextrair_votacoes_nominais_por_ano(anos = 2023) faz uma requisição à API do Senado e pode demorar 5–15 segundos dependendo da conexão. Para evitar baixar os mesmos dados várias vezes durante uma sessão de trabalho, salve o resultado localmente:\n# Salvar\nsaveRDS(nominais, \"data/nominais_2023.rds\")\n\n# Recarregar na próxima sessão\nnominais &lt;- readRDS(\"data/nominais_2023.rds\")\nEssa prática — cache local com saveRDS/readRDS — é tratada em detalhe no capítulo de workflow.",
+    "crumbs": [
+      "O Jogo Completo",
+      "O Jogo Completo"
+    ]
+  },
+  {
+    "objectID": "01-introducao.html",
+    "href": "01-introducao.html",
+    "title": "1  O Senado Federal e seus Dados Abertos",
+    "section": "",
+    "text": "1.1 O que é o Senado Federal?\nO Senado Federal é uma das duas casas do Congresso Nacional brasileiro, ao lado da Câmara dos Deputados. Composto por 81 senadores — três por estado e pelo Distrito Federal —, o Senado exerce funções legislativas, de controle e de representação dos estados.\nEntre suas principais atribuições estão:",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>O Senado Federal e seus Dados Abertos</span>"
+    ]
+  },
+  {
+    "objectID": "01-introducao.html#o-que-é-o-senado-federal",
+    "href": "01-introducao.html#o-que-é-o-senado-federal",
+    "title": "1  O Senado Federal e seus Dados Abertos",
+    "section": "",
+    "text": "Apreciar projetos de lei aprovados pela Câmara\nAprovar indicações para cargos do Poder Executivo e Judiciário\nRatificar tratados internacionais\nProcessar o Presidente da República em crimes de responsabilidade",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>O Senado Federal e seus Dados Abertos</span>"
+    ]
+  },
+  {
+    "objectID": "01-introducao.html#a-api-de-dados-abertos",
+    "href": "01-introducao.html#a-api-de-dados-abertos",
+    "title": "1  O Senado Federal e seus Dados Abertos",
+    "section": "1.2 A API de Dados Abertos",
+    "text": "1.2 A API de Dados Abertos\nO Senado Federal disponibiliza uma API REST com dados sobre senadores, votações, matérias legislativas, comissões, discursos e muito mais.\nA API segue o princípio de dados abertos e não exige autenticação para a maioria das consultas. Os dados são retornados em formato XML ou JSON.\nhttps://legis.senado.leg.br/dadosabertos/",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>O Senado Federal e seus Dados Abertos</span>"
+    ]
+  },
+  {
+    "objectID": "01-introducao.html#por-que-usar-o-senatebr",
+    "href": "01-introducao.html#por-que-usar-o-senatebr",
+    "title": "1  O Senado Federal e seus Dados Abertos",
+    "section": "1.3 Por que usar o senatebR?",
+    "text": "1.3 Por que usar o senatebR?\nAcessar a API diretamente exige conhecimento de HTTP, parsing de XML/JSON e tratamento de erros de rede. O senatebR encapsula toda essa complexidade e retorna data frames prontos para análise.\nComparação:\n\nSem senatebRCom senatebR\n\n\nlibrary(httr)\nlibrary(xml2)\n\nurl &lt;- \"https://legis.senado.leg.br/dadosabertos/senador/lista/atual\"\nresp &lt;- GET(url)\ndoc  &lt;- read_xml(content(resp, \"text\"))\nnos  &lt;- xml_find_all(doc, \".//Parlamentar\")\n\ndados &lt;- data.frame(\n  codigo = xml_text(xml_find_all(nos, \".//CodigoParlamentar\")),\n  nome   = xml_text(xml_find_all(nos, \".//NomeParlamentar\")),\n  partido = xml_text(xml_find_all(nos, \".//SiglaPartidoParlamentar\")),\n  uf     = xml_text(xml_find_all(nos, \".//UfParlamentar\"))\n)\n\n\nlibrary(senatebR)\n\ndados &lt;- obter_dados_senadores_legislatura(57, 57)",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>O Senado Federal e seus Dados Abertos</span>"
+    ]
+  },
+  {
+    "objectID": "01-introducao.html#estrutura-do-pacote",
+    "href": "01-introducao.html#estrutura-do-pacote",
+    "title": "1  O Senado Federal e seus Dados Abertos",
+    "section": "1.4 Estrutura do pacote",
+    "text": "1.4 Estrutura do pacote\nO senatebR organiza suas 36 funções em sete categorias:\n\n\n\n\n\n\n\nCategoria\nFunções\n\n\n\n\nSenadores\nobter_dados_senadores_legislatura(), get_afastados(), processar_xml_mandatos(), processar_xml_liderancas(), processar_xml_profissoes(), processar_xml_apartes(), dados_academicos(), dados_relatorias_parlamentares(), coletar_autorias_parlamentares()\n\n\nMatérias\nmaterias_legislatura_atual(), info_materia_temas(), extrair_situacoes_tramitacao(), extrair_classificacoes_materia(), extrair_siglas_ativas(), info_atualizacao_materias()\n\n\nVotações\ncoletar_votacoes_multiplos(), extrair_votacoes_nominais_por_ano(), extrair_votacoes_por_ano(), coletar_orientacao_votacao(), extrair_tipos_comparecimento(), extrair_tipos_decisao()\n\n\nComissões\ndados_comissoes(), obter_dados_comissoes_parlamentares(), info_dados_reuniao_comissao(), info_dados_reuniao_nota(), extrair_notas_taquigraficas()\n\n\nDiscursos\nextrair_discursos(), extrair_pronunciamentos_multi()\n\n\nAgenda\ninfo_agenda(), info_vetos(), extrair_detalhes_vetos(), dados_vetos()\n\n\nOutros\ncoletar_medidas_provisorias_em_tramitacao(), coletar_medidas_provisorias_encerradas(), obter_dados_partidos(), extrair_siglas_ativas()",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>O Senado Federal e seus Dados Abertos</span>"
+    ]
+  },
+  {
+    "objectID": "01-introducao.html#requisitos",
+    "href": "01-introducao.html#requisitos",
+    "title": "1  O Senado Federal e seus Dados Abertos",
+    "section": "1.5 Requisitos",
+    "text": "1.5 Requisitos\n\nR ≥ 4.1.0\nDependências principais: httr, xml2, dplyr, tidyr, purrr, stringr\nConexão à internet obrigatória para coletar dados em tempo real",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>O Senado Federal e seus Dados Abertos</span>"
+    ]
+  },
+  {
+    "objectID": "01-introducao.html#boas-práticas",
+    "href": "01-introducao.html#boas-práticas",
+    "title": "1  O Senado Federal e seus Dados Abertos",
+    "section": "1.6 Boas práticas",
+    "text": "1.6 Boas práticas\n\n\n\n\n\n\nImportantRespeite os limites da API\n\n\n\nA API do Senado é um serviço público sem autenticação. Para evitar sobrecarga:\n\nUse Sys.sleep(0.5) entre requisições em loop\nNão colete o mesmo endpoint repetidamente — salve os dados localmente\nEvite coletar múltiplos anos/senadores em paralelo sem pausa\n\nNão há um rate limit documentado, mas requisições muito frequentes podem resultar em erros temporários HTTP 429 ou 503.\n\n\n\n\n\n\n\n\nTipCache de dados\n\n\n\nPara projetos reproduzíveis, salve os dados coletados:\ndados &lt;- obter_dados_senadores_legislatura(57, 57)\nsaveRDS(dados, \"data/senadores_57_legislatura.rds\")\n\n# Na próxima sessão:\ndados &lt;- readRDS(\"data/senadores_57_legislatura.rds\")",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>O Senado Federal e seus Dados Abertos</span>"
+    ]
+  },
+  {
+    "objectID": "02-instalacao.html",
+    "href": "02-instalacao.html",
+    "title": "2  Instalação e Configuração",
+    "section": "",
+    "text": "2.1 Instalando o pacote\nO senatebR está disponível no CRAN e pode ser instalado com:\nPara a versão de desenvolvimento (com as funcionalidades mais recentes):",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Instalação e Configuração</span>"
+    ]
+  },
+  {
+    "objectID": "02-instalacao.html#instalando-o-pacote",
+    "href": "02-instalacao.html#instalando-o-pacote",
+    "title": "2  Instalação e Configuração",
+    "section": "",
+    "text": "install.packages(\"senatebR\")\n\n# install.packages(\"remotes\")\nremotes::install_github(\"vsntos/senatebR\")",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Instalação e Configuração</span>"
+    ]
+  },
+  {
+    "objectID": "02-instalacao.html#carregando-o-pacote",
+    "href": "02-instalacao.html#carregando-o-pacote",
+    "title": "2  Instalação e Configuração",
+    "section": "2.2 Carregando o pacote",
+    "text": "2.2 Carregando o pacote\nlibrary(senatebR)\nAo carregar, todas as 36 funções ficam disponíveis. Para ver a lista completa:\nhelp(package = \"senatebR\")",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Instalação e Configuração</span>"
+    ]
+  },
+  {
+    "objectID": "02-instalacao.html#verificando-a-conexão-com-a-api",
+    "href": "02-instalacao.html#verificando-a-conexão-com-a-api",
+    "title": "2  Instalação e Configuração",
+    "section": "2.3 Verificando a conexão com a API",
+    "text": "2.3 Verificando a conexão com a API\nAntes de iniciar qualquer análise, verifique se você consegue acessar a API:\n# Teste simples: busca lista de siglas ativas\nsiglas &lt;- extrair_siglas_ativas()\nhead(siglas)\n#&gt;   Sigla                     Descricao  DataInicio     DataFim\n#&gt; 1   ACE Aviso da Comissão de Educação  2017-01-01  2024-09-18\n#&gt; 2   ACL      Ato Conjunto Legislativo  2023-01-01        &lt;NA&gt;\n#&gt; 3    AP              Ato da Presidência 2017-01-01        &lt;NA&gt;\n#&gt; 4   APV     Ato da Presidência - Veto  2017-01-01        &lt;NA&gt;\nAs colunas retornadas por extrair_siglas_ativas():\n\n\n\nColuna\nDescrição\n\n\n\n\nSigla\nAbreviação do tipo de matéria (ex: PL, PEC, MPV)\n\n\nDescricao\nNome completo do tipo\n\n\nDataInicio\nData a partir da qual a sigla passou a ser usada\n\n\nDataFim\nData em que a sigla foi desativada (NA = ainda ativa)\n\n\n\nSe a função retornar um data frame, a conexão está funcionando. Se receber um warning com “Erro ao acessar”, verifique sua conexão à internet.\n\n\n\n\n\n\nTipProblemas comuns de conexão\n\n\n\n\nTimeout: A API pode demorar em horários de pico. Tente novamente em alguns segundos.\nFirewall corporativo: Redes universitárias ou empresariais podem bloquear o acesso. Teste em uma rede doméstica ou use VPN.\nAPI fora do ar: Verifique o portal https://dadosabertos.senado.leg.br/ diretamente no navegador.",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Instalação e Configuração</span>"
+    ]
+  },
+  {
+    "objectID": "02-instalacao.html#pacotes-complementares-recomendados",
+    "href": "02-instalacao.html#pacotes-complementares-recomendados",
+    "title": "2  Instalação e Configuração",
+    "section": "2.4 Pacotes complementares recomendados",
+    "text": "2.4 Pacotes complementares recomendados\nPara tirar o máximo do senatebR, instale também:\ninstall.packages(c(\n  \"dplyr\",      # manipulação de dados\n  \"ggplot2\",    # visualização\n  \"tidyr\",      # organização de dados\n  \"stringr\",    # manipulação de texto\n  \"lubridate\",  # datas\n  \"tidytext\",   # análise de texto\n  \"knitr\",      # tabelas em relatórios\n  \"gt\"          # tabelas bonitas\n))",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Instalação e Configuração</span>"
+    ]
+  },
+  {
+    "objectID": "02-instalacao.html#estrutura-de-um-projeto-típico",
+    "href": "02-instalacao.html#estrutura-de-um-projeto-típico",
+    "title": "2  Instalação e Configuração",
+    "section": "2.5 Estrutura de um projeto típico",
+    "text": "2.5 Estrutura de um projeto típico\nUma boa organização de projeto para análise com senatebR:\nmeu-projeto/\n├── data/\n│   ├── raw/          # dados coletados da API (nunca edite)\n│   └── processed/    # dados após limpeza\n├── R/\n│   ├── 01-coleta.R   # scripts de coleta\n│   ├── 02-limpeza.R  # tratamento dos dados\n│   └── 03-analise.R  # análises e visualizações\n├── output/\n│   ├── figuras/\n│   └── tabelas/\n└── relatorio.Rmd     # relatório final\n\n\n\n\n\n\nNoteAmbiente reproduzível\n\n\n\nPara garantir reprodutibilidade, registre as versões dos pacotes usados:\nsessionInfo()\n# ou\nrenv::snapshot()  # usando o pacote renv",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Instalação e Configuração</span>"
+    ]
+  },
+  {
+    "objectID": "02-instalacao.html#primeiro-contato-uma-análise-em-5-minutos",
+    "href": "02-instalacao.html#primeiro-contato-uma-análise-em-5-minutos",
+    "title": "2  Instalação e Configuração",
+    "section": "2.6 Primeiro contato: uma análise em 5 minutos",
+    "text": "2.6 Primeiro contato: uma análise em 5 minutos\nVeja a seguir um exemplo completo do que é possível fazer com poucas linhas:\nlibrary(senatebR)\nlibrary(dplyr)\nlibrary(ggplot2)\n\n# 1. Coletar senadores da 57ª legislatura e simplificar nomes de colunas\n#    (as colunas vêm com prefixo \"IdentificacaoParlamentar.\" do XML da API)\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))\n\n# 2. Contar por partido\npor_partido &lt;- senadores |&gt;\n  count(SiglaPartidoParlamentar, sort = TRUE) |&gt;\n  slice_head(n = 10)\n\n# 3. Visualizar\nggplot(por_partido,\n       aes(x = reorder(SiglaPartidoParlamentar, n),\n           y = n)) +\n  geom_col(fill = \"#2c7bb6\") +\n  coord_flip() +\n  labs(title = \"Senadores por partido\",\n       x = NULL, y = \"Número de senadores\") +\n  theme_minimal()\n\n\n\n\n\n\nNote\n\n\n\nO rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) remove o prefixo que a API adiciona às colunas por conta da estrutura XML aninhada. Esse padrão será repetido em vários capítulos. Consulte a Section 4.1 para mais detalhes.\n\n\nNos próximos capítulos, exploraremos cada categoria de funções em detalhes.",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Instalação e Configuração</span>"
+    ]
+  },
+  {
+    "objectID": "workflow.html",
+    "href": "workflow.html",
+    "title": "3  Workflow com a API do Senado",
+    "section": "",
+    "text": "3.1 Organize o projeto com .Rproj\nAntes de mergulhar nas análises, vale estabelecer três hábitos que vão poupar tempo e frustração: organizar o projeto, proteger o código contra falhas da API, e evitar baixar os mesmos dados repetidamente.\nSempre trabalhe dentro de um projeto R. Crie um via RStudio → File → New Project, ou no terminal:\nCom um .Rproj ativo, todos os caminhos relativos (\"data/nominais.rds\") funcionam de qualquer máquina — sem setwd().",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Workflow com a API do Senado</span>"
+    ]
+  },
+  {
+    "objectID": "workflow.html#organize-o-projeto-com-.rproj",
+    "href": "workflow.html#organize-o-projeto-com-.rproj",
+    "title": "3  Workflow com a API do Senado",
+    "section": "",
+    "text": "# Cria a estrutura de diretórios recomendada\ndir.create(\"data\")    # dados brutos / cache local\ndir.create(\"output\")  # gráficos e tabelas exportadas",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Workflow com a API do Senado</span>"
+    ]
+  },
+  {
+    "objectID": "workflow.html#cache-local-não-bata-na-api-duas-vezes",
+    "href": "workflow.html#cache-local-não-bata-na-api-duas-vezes",
+    "title": "3  Workflow com a API do Senado",
+    "section": "3.2 Cache local: não bata na API duas vezes",
+    "text": "3.2 Cache local: não bata na API duas vezes\nA API do Senado é pública e sem autenticação, mas algumas funções fazem dezenas de requisições HTTP (uma por senador, uma por ano, etc.). Baixar os mesmos dados repetidamente é lento e desnecessário.\nO padrão recomendado é baixar uma vez, salvar, reutilizar:\ncaminho &lt;- \"data/nominais_2023.rds\"\n\nif (file.exists(caminho)) {\n  nominais &lt;- readRDS(caminho)\n} else {\n  nominais &lt;- extrair_votacoes_nominais_por_ano(anos = 2023)\n  saveRDS(nominais, caminho)\n}\nEsse bloco: verifica se o arquivo já existe; se sim, lê do disco (instantâneo); se não, baixa da API e salva para a próxima vez.\n\n\n\n\n\n\nTip\n\n\n\nUse saveRDS para objetos R intermediários e readr::write_csv / readr::read_csv quando precisar abrir o arquivo em outro software (Excel, Python, etc.).",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Workflow com a API do Senado</span>"
+    ]
+  },
+  {
+    "objectID": "workflow.html#proteção-contra-falhas-com-trycatch",
+    "href": "workflow.html#proteção-contra-falhas-com-trycatch",
+    "title": "3  Workflow com a API do Senado",
+    "section": "3.3 Proteção contra falhas com tryCatch",
+    "text": "3.3 Proteção contra falhas com tryCatch\nA API pode falhar por timeout, instabilidade do servidor, ou código inexistente. Sem proteção, um erro interrompe todo o script. tryCatch captura o erro e deixa o código continuar:\nresultado &lt;- tryCatch(\n  extrair_discursos(codigo_senador = \"5672\",\n                    data_inicio    = \"2023-01-01\",\n                    data_fim       = \"2023-12-31\"),\n  error = function(e) {\n    message(\"Falha ao coletar senador 5672: \", conditionMessage(e))\n    NULL   # retorna NULL em vez de parar\n  }\n)\nQuando você itera sobre vários senadores, combine tryCatch com lapply:\ncodigos &lt;- c(\"5672\", \"5386\", \"945\", \"22\")\n\ndiscursos_lista &lt;- lapply(codigos, function(cod) {\n  Sys.sleep(0.3)   # pausa entre requisições para não sobrecarregar a API\n  tryCatch(\n    extrair_discursos(codigo_senador = cod,\n                      data_inicio    = \"2023-01-01\",\n                      data_fim       = \"2023-12-31\"),\n    error = function(e) {\n      message(\"Falha: \", cod, \" — \", conditionMessage(e))\n      NULL\n    }\n  )\n})\n\n# Descartar NULLs e combinar\ndiscursos &lt;- dplyr::bind_rows(Filter(Negate(is.null), discursos_lista))",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Workflow com a API do Senado</span>"
+    ]
+  },
+  {
+    "objectID": "workflow.html#sys.sleep-respeite-o-servidor",
+    "href": "workflow.html#sys.sleep-respeite-o-servidor",
+    "title": "3  Workflow com a API do Senado",
+    "section": "3.4 Sys.sleep: respeite o servidor",
+    "text": "3.4 Sys.sleep: respeite o servidor\nQuando iterar sobre muitos senadores ou anos, adicione uma pausa de 0,3–0,5 segundos entre requisições. Isso evita receber erros HTTP 429 (Too Many Requests) e é uma boa prática de uso de APIs públicas.\n# Exemplo: coletar votações de 10 senadores com pausa\nresultados &lt;- lapply(codigos[1:10], function(cod) {\n  Sys.sleep(0.5)\n  coletar_votacoes_multiplos(cod, anos = 2023)\n})",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Workflow com a API do Senado</span>"
+    ]
+  },
+  {
+    "objectID": "workflow.html#estilo-de-código",
+    "href": "workflow.html#estilo-de-código",
+    "title": "3  Workflow com a API do Senado",
+    "section": "3.5 Estilo de código",
+    "text": "3.5 Estilo de código\nSeguir um estilo consistente torna o código mais fácil de ler e revisar. Recomendações para este curso:\n# Use o pipe nativo do R 4.1+ (|&gt;) em vez do pipe do magrittr (%&gt;%)\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar))\n\n# Nomes de objetos: snake_case\nnominais_2023 &lt;- extrair_votacoes_nominais_por_ano(anos = 2023)\n\n# Um argumento por linha quando a chamada fica longa\nagenda_junho &lt;- info_agenda(\n  anos  = 2024,\n  meses = 6,\n  dias  = 1:30\n)\n\n\n\n\n\n\nTip\n\n\n\nO pacote styler formata código automaticamente segundo o guia de estilo do tidyverse: install.packages(\"styler\"). No RStudio, use o atalho Ctrl+Shift+A (Cmd+Shift+A no Mac) para indentar uma seleção.",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Workflow com a API do Senado</span>"
+    ]
+  },
+  {
+    "objectID": "workflow.html#quando-algo-der-errado",
+    "href": "workflow.html#quando-algo-der-errado",
+    "title": "3  Workflow com a API do Senado",
+    "section": "3.6 Quando algo der errado",
+    "text": "3.6 Quando algo der errado\nTrês passos antes de pedir ajuda:\n\nLeia a mensagem de erro por completo — R geralmente diz exatamente o que falhou\nVerifique os nomes das colunas com names() ou glimpse() — a maioria dos erros em análises com senatebR vem de coluna com nome diferente do esperado\nTeste com um subconjunto menor — se a função falha com 81 senadores, tente com 3 primeiro\n\n# Sempre útil para diagnóstico\nnames(meu_dataframe)\nglimpse(meu_dataframe)\nclass(meu_dataframe$coluna_problema)\nPara erros da API, verifique:\n# Testa a conexão com a API do Senado\nhttr::GET(\"https://legis.senado.leg.br/dadosabertos/senador/lista/atual\")\n# Status 200 = API respondendo normalmente",
+    "crumbs": [
+      "Fundamentos",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Workflow com a API do Senado</span>"
+    ]
+  },
+  {
+    "objectID": "03-senadores.html",
+    "href": "03-senadores.html",
+    "title": "4  Senadores e Parlamentares",
+    "section": "",
+    "text": "4.1 Lista de senadores por legislatura\nO Senado Federal tem 81 cadeiras — três por estado. Mas quem são, de onde vêm e por quais partidos esses senadores foram eleitos? Este capítulo responde essas perguntas e mostra como navegar o histórico de mandatos, lideranças e formação dos parlamentares.\nO argumento numérico refere-se ao número da legislatura. A 57ª legislatura (2023–2027) é a mais recente:\nAs principais colunas (após remoção do prefixo):",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Senadores e Parlamentares</span>"
+    ]
+  },
+  {
+    "objectID": "03-senadores.html#sec-simplificando",
+    "href": "03-senadores.html#sec-simplificando",
+    "title": "4  Senadores e Parlamentares",
+    "section": "",
+    "text": "library(senatebR)\nlibrary(dplyr)\n\nsenadores_raw &lt;- obter_dados_senadores_legislatura(57, 57)\nglimpse(senadores_raw)\n#&gt; Rows: 245\n#&gt; Columns: 13\n#&gt; $ IdentificacaoParlamentar.CodigoParlamentar       &lt;chr&gt; \"5918\", \"6382\", ...\n#&gt; $ IdentificacaoParlamentar.NomeParlamentar         &lt;chr&gt; \"Adilson Gomes\", ...\n#&gt; $ IdentificacaoParlamentar.NomeCompletoParlamentar &lt;chr&gt; \"Adilson Gomes Silva\", ...\n#&gt; $ IdentificacaoParlamentar.SexoParlamentar         &lt;chr&gt; \"Masculino\", ...\n#&gt; $ IdentificacaoParlamentar.FormaTratamento         &lt;chr&gt; \"Senador \", ...\n#&gt; $ IdentificacaoParlamentar.SiglaPartidoParlamentar &lt;chr&gt; NA, NA, \"PV\", ...\n#&gt; $ IdentificacaoParlamentar.CodigoPublicoNaLegAtual &lt;chr&gt; NA, NA, NA, ...\n#&gt; $ IdentificacaoParlamentar.UrlFotoParlamentar      &lt;chr&gt; NA, NA, NA, ...\n#&gt; $ IdentificacaoParlamentar.UrlPaginaParlamentar    &lt;chr&gt; NA, NA, NA, ...\n#&gt; $ IdentificacaoParlamentar.EmailParlamentar        &lt;chr&gt; NA, NA, NA, ...\n#&gt; $ IdentificacaoParlamentar.UfParlamentar           &lt;chr&gt; NA, NA, NA, ...\n#&gt; $ IdentificacaoParlamentar.UrlPaginaParticular     &lt;chr&gt; NA, NA, NA, ...\n#&gt; $ Mandatos.Mandato                                 &lt;list&gt; [&lt;data.frame[1 x 13]&gt;], ...\n\n\n\n\n\n\nNote\n\n\n\nA função retorna 245 linhas porque inclui titulares e suplentes que exerceram mandato na legislatura. Filtre por !is.na(SiglaPartidoParlamentar) e !is.na(UfParlamentar) para obter apenas os registros com dados completos (~84 linhas). As colunas têm o prefixo IdentificacaoParlamentar. pois os dados vêm de um XML aninhado.\n\n\n\n\n\n\n\n\n\n\nColuna\nDescrição\n\n\n\n\nCodigoParlamentar\nCódigo único na API — use em todas as outras funções\n\n\nNomeParlamentar\nNome parlamentar\n\n\nNomeCompletoParlamentar\nNome civil completo\n\n\nSexoParlamentar\n\"Masculino\" ou \"Feminino\"\n\n\nFormaTratamento\n\"Senador \" ou \"Senadora \"\n\n\nSiglaPartidoParlamentar\nSigla do partido atual (NA para suplentes sem exercício)\n\n\nUfParlamentar\nEstado de representação (NA para suplentes sem exercício)\n\n\nEmailParlamentar\nE-mail institucional",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Senadores e Parlamentares</span>"
+    ]
+  },
+  {
+    "objectID": "03-senadores.html#simplificando-os-nomes-das-colunas",
+    "href": "03-senadores.html#simplificando-os-nomes-das-colunas",
+    "title": "4  Senadores e Parlamentares",
+    "section": "4.2 Simplificando os nomes das colunas",
+    "text": "4.2 Simplificando os nomes das colunas\nPara facilitar o uso, remova o prefixo e filtre os registros com dados completos:\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))\n\nsenadores |&gt;\n  count(SiglaPartidoParlamentar, sort = TRUE)\n#&gt; # A tibble: 14 × 2\n#&gt;    SiglaPartidoParlamentar     n\n#&gt;    &lt;chr&gt;                   &lt;int&gt;\n#&gt;  1 PL                         17\n#&gt;  2 PSD                        14\n#&gt;  3 MDB                         9\n#&gt;  4 PT                          9\n#&gt;  5 PP                          7\n#&gt;  6 PSB                         7\n#&gt;  7 REPUBLICANOS                6\n#&gt;  8 UNIÃO                       4\n#&gt;  9 PODEMOS                     3\n#&gt; 10 PSDB                        3\n#&gt; 11 PDT                         2\n#&gt; 12 AVANTE                      1\n#&gt; 13 NOVO                        1\n#&gt; 14 SOLIDARIEDADE               1",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Senadores e Parlamentares</span>"
+    ]
+  },
+  {
+    "objectID": "03-senadores.html#análise-da-composição-partidária",
+    "href": "03-senadores.html#análise-da-composição-partidária",
+    "title": "4  Senadores e Parlamentares",
+    "section": "4.3 Análise da composição partidária",
+    "text": "4.3 Análise da composição partidária\nsenadores |&gt;\n  count(SiglaPartidoParlamentar, sort = TRUE) |&gt;\n  rename(Partido = SiglaPartidoParlamentar, Senadores = n)",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Senadores e Parlamentares</span>"
+    ]
+  },
+  {
+    "objectID": "03-senadores.html#mandatos-históricos",
+    "href": "03-senadores.html#mandatos-históricos",
+    "title": "4  Senadores e Parlamentares",
+    "section": "4.4 Mandatos históricos",
+    "text": "4.4 Mandatos históricos\n\n\n\n\n\n\nImportantCódigos numéricos obrigatórios\n\n\n\nAs funções processar_xml_mandatos(), processar_xml_liderancas(), processar_xml_apartes() e processar_xml_profissoes() exigem que os códigos sejam passados como números (não strings). Use c(5672, 5982, 5386) e não c(\"5672\", \"5982\", \"5386\").\n\n\ncodigos &lt;- c(5672, 5982, 5386)\n\nmandatos &lt;- processar_xml_mandatos(codigos)\nglimpse(mandatos)\n#&gt; Rows: 3\n#&gt; Columns: 14\n#&gt; $ CodigoSenador          &lt;chr&gt; \"5672\", \"5982\", \"5386\"\n#&gt; $ NomeSenador            &lt;chr&gt; \"Alan Rick\", \"Alessandro Vieira\", \"Professora Dorinha...\"\n#&gt; $ CodigoMandato          &lt;chr&gt; \"596\", \"559\", \"615\"\n#&gt; $ UfParlamentar          &lt;chr&gt; \"AC\", \"SE\", \"TO\"\n#&gt; $ NumeroLegislatura1     &lt;chr&gt; \"57\", \"56\", \"57\"\n#&gt; $ DataInicioLegislatura1 &lt;chr&gt; \"2023-02-01\", \"2019-02-01\", \"2023-02-01\"\n#&gt; $ DataFimLegislatura1    &lt;chr&gt; \"2027-01-31\", \"2023-01-31\", \"2027-01-31\"\n#&gt; $ DescricaoParticipacao  &lt;chr&gt; \"Titular\", \"Titular\", \"Titular\"\n#&gt; $ Suplentes              &lt;chr&gt; \"Gemil Junior; Coronel Casagrande\", ...\n#&gt; $ Exercicios             &lt;chr&gt; \"2023-02-01\", \"2019-02-01\", \"2023-02-01\"\n#&gt; $ CausaAfastamento       &lt;chr&gt; \"\", \"\", \"\"\n\n\n\n\n\n\nTipComo obter os códigos\n\n\n\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))\n\nsenadores |&gt;\n  filter(grepl(\"Pacheco\", NomeParlamentar)) |&gt;\n  select(CodigoParlamentar, NomeParlamentar, SiglaPartidoParlamentar)\n#&gt; # A tibble: 1 × 3\n#&gt;   CodigoParlamentar NomeParlamentar SiglaPartidoParlamentar\n#&gt;   &lt;chr&gt;             &lt;chr&gt;           &lt;chr&gt;\n#&gt; 1 5732              Rodrigo Pacheco PSB",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Senadores e Parlamentares</span>"
+    ]
+  },
+  {
+    "objectID": "03-senadores.html#formação-acadêmica",
+    "href": "03-senadores.html#formação-acadêmica",
+    "title": "4  Senadores e Parlamentares",
+    "section": "4.5 Formação acadêmica",
+    "text": "4.5 Formação acadêmica\n# dados_academicos() pode retornar NAs quando o senador não preencheu os dados\nacademico &lt;- dados_academicos(codigos)\nglimpse(academico)\n#&gt; Rows: 3\n#&gt; Columns: 3\n#&gt; $ NomeCurso       &lt;chr&gt; NA, NA, NA\n#&gt; $ GrauInstrucao   &lt;chr&gt; NA, NA, NA\n#&gt; $ Estabelecimento &lt;chr&gt; NA, NA, NA\n\n\n\n\n\n\nNote\n\n\n\ndados_academicos() retorna as colunas NomeCurso, GrauInstrucao e Estabelecimento. Retorna NA quando o senador não preencheu o campo. Tente com senadores de legislaturas anteriores para obter mais dados preenchidos.",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Senadores e Parlamentares</span>"
+    ]
+  },
+  {
+    "objectID": "03-senadores.html#lideranças-apartes-e-profissões",
+    "href": "03-senadores.html#lideranças-apartes-e-profissões",
+    "title": "4  Senadores e Parlamentares",
+    "section": "4.6 Lideranças, apartes e profissões",
+    "text": "4.6 Lideranças, apartes e profissões\n# Use valores numéricos (sem aspas)\ncodigos &lt;- c(5672, 5982, 5386)\n\nliderancas &lt;- processar_xml_liderancas(codigos)\nglimpse(liderancas)\n#&gt; Rows: 20\n#&gt; Columns: 16\n#&gt; $ CodigoParlamentar        &lt;chr&gt; \"5672\", \"5672\", \"5982\", ...\n#&gt; $ NomeParlamentar          &lt;chr&gt; \"Alan Rick\", \"Alan Rick\", \"Alessandro Vieira\", ...\n#&gt; $ UnidadeLideranca         &lt;chr&gt; \"Liderança de Partido no Senado Federal\", ...\n#&gt; $ SiglaPartido             &lt;chr&gt; \"REPUBLICANOS\", \"UNIÃO\", ...\n#&gt; $ NomePartido              &lt;chr&gt; \"REPUBLICANOS\", \"União Brasil\", ...\n#&gt; $ SiglaCasaLideranca       &lt;chr&gt; \"SF\", \"SF\", ...\n#&gt; $ DescricaoTipoLideranca   &lt;chr&gt; \"Líder do Senado Federal\", \"Vice-líder...\", ...\n#&gt; $ DataDesignacao           &lt;chr&gt; \"2026-03-17\", \"2023-02-28\", ...\n#&gt; $ DataFim                  &lt;chr&gt; NA, \"2025-01-31\", ...\n\napartes &lt;- processar_xml_apartes(codigos)\nglimpse(apartes)\n#&gt; Rows: 16\n#&gt; Columns: 21\n#&gt; $ CodigoParlamentar    &lt;chr&gt; \"5672\", \"5672\", ...\n#&gt; $ NomeParlamentar      &lt;chr&gt; \"Alan Rick\", ...\n#&gt; $ CodigoPronunciamento &lt;chr&gt; \"501476\", ...\n#&gt; $ TipoUsoPalavra       &lt;chr&gt; \"Discurso\", ...\n#&gt; $ DataPronunciamento   &lt;chr&gt; \"2023-10-17\", ...\n#&gt; $ TextoResumo          &lt;chr&gt; \"Elogios à atuação do Presidente do Senado...\", ...\n#&gt; $ UrlTexto             &lt;chr&gt; \"https://www25.senado.leg.br/...\", ...\n\nprofissoes &lt;- processar_xml_profissoes(codigos)\n#&gt; # A tibble: 1 × 4\n#&gt;   CodigoParlamentar NomeParlamentar        NomeProfissao IndicadorAtividadePrincipal\n#&gt;   &lt;chr&gt;             &lt;chr&gt;                  &lt;chr&gt;         &lt;chr&gt;\n#&gt; 1 5386              Professora Dorinha ... Professor(a)  Sim",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Senadores e Parlamentares</span>"
+    ]
+  },
+  {
+    "objectID": "03-senadores.html#exercício",
+    "href": "03-senadores.html#exercício",
+    "title": "4  Senadores e Parlamentares",
+    "section": "4.7 Exercício",
+    "text": "4.7 Exercício\n\n\n\n\n\n\nNoteExercício 3.1\n\n\n\nO Senado brasileiro tem representação feminina abaixo da média regional. Mas será que isso está mudando?\nUsando os dados das legislaturas 56 (2019–2023) e 57 (2023–2027), investigue: a proporção de senadoras aumentou entre legislaturas? O que muda quando você compara por partido — há partidos que nunca elegeram uma senadora?\nleg56 &lt;- obter_dados_senadores_legislatura(56, 56) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))\n\nleg57 &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))\n\n\n\n\n\n\n\n\nTipUma resposta possível\n\n\n\n\n\nlibrary(senatebR)\nlibrary(dplyr)\nlibrary(ggplot2)\n\nleg56 &lt;- obter_dados_senadores_legislatura(56, 56) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))\n\nleg57 &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))\n\n# Proporção por legislatura\nbind_rows(\n  leg56 |&gt; mutate(legislatura = \"56ª (2019–2023)\"),\n  leg57 |&gt; mutate(legislatura = \"57ª (2023–2027)\")\n) |&gt;\n  group_by(legislatura) |&gt;\n  summarise(\n    total     = n(),\n    feminino  = sum(SexoParlamentar == \"Feminino\"),\n    proporcao = feminino / total\n  )\n#&gt; # A tibble: 2 × 4\n#&gt;   legislatura       total feminino proporcao\n#&gt;   56ª (2019–2023)      84       13     0.155\n#&gt;   57ª (2023–2027)      84       15     0.179\n\n# Proporção feminina por partido na 57ª\nleg57 |&gt;\n  group_by(SiglaPartidoParlamentar) |&gt;\n  summarise(\n    total    = n(),\n    feminino = sum(SexoParlamentar == \"Feminino\"),\n    prop_f   = feminino / total\n  ) |&gt;\n  arrange(desc(prop_f))\nA proporção cresceu levemente (15,5% → 17,9%), mas continua baixa. Alguns partidos têm zero senadoras na 57ª legislatura — o que levanta questões sobre recrutamento partidário que os dados de discursos e comissões (caps. 4 e 7) podem ajudar a investigar.",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Senadores e Parlamentares</span>"
+    ]
+  },
+  {
+    "objectID": "04-comissoes.html",
+    "href": "04-comissoes.html",
+    "title": "5  Comissões",
+    "section": "",
+    "text": "5.1 Lista de comissões permanentes\nGrande parte do trabalho legislativo acontece fora do plenário, nas comissões temáticas. Saber em quais comissões um senador senta — e se há sobreposição entre senadores de diferentes partidos — revela muito sobre a estrutura de influência no Senado.",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Comissões</span>"
+    ]
+  },
+  {
+    "objectID": "04-comissoes.html#lista-de-comissões-permanentes",
+    "href": "04-comissoes.html#lista-de-comissões-permanentes",
+    "title": "5  Comissões",
+    "section": "",
+    "text": "library(senatebR)\n\ncomissoes &lt;- dados_comissoes()\ncomissoes\n\n\n\n\n\n\nWarningdados_comissoes() atualmente não funciona\n\n\n\ndados_comissoes() obtém a lista de comissões por web scraping do site do Senado. No momento da escrita deste livro, a função retorna 0 linhas porque o endpoint de scraping foi alterado. O comportamento pode mudar com atualizações futuras do pacote.\nAlternativa: use as siglas de comissão diretamente nas demais funções. As principais comissões permanentes do Senado são:\n\n\n\nSigla\nNome\n\n\n\n\nCCJ\nComissão de Constituição, Justiça e Cidadania\n\n\nCAE\nComissão de Assuntos Econômicos\n\n\nCAS\nComissão de Assuntos Sociais\n\n\nCI\nComissão de Ciência, Tecnologia, Inovação e Informática\n\n\nCRA\nComissão de Agricultura e Reforma Agrária\n\n\nCDR\nComissão de Desenvolvimento Regional e Turismo\n\n\nCE\nComissão de Educação, Cultura e Esporte\n\n\nCMA\nComissão de Meio Ambiente\n\n\nCRE\nComissão de Relações Exteriores\n\n\n\nConsulte a lista completa em https://legis.senado.leg.br/comissoes/.",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Comissões</span>"
+    ]
+  },
+  {
+    "objectID": "04-comissoes.html#reuniões-de-uma-comissão",
+    "href": "04-comissoes.html#reuniões-de-uma-comissão",
+    "title": "5  Comissões",
+    "section": "5.2 Reuniões de uma comissão",
+    "text": "5.2 Reuniões de uma comissão\n\n\n\n\n\n\nWarninginfo_dados_reuniao_comissao() atualmente com falha de conexão\n\n\n\nNo momento da escrita deste livro, info_dados_reuniao_comissao() lança o erro \"cannot open the connection\" ao tentar acessar o endpoint da API. A função pode voltar a funcionar com atualizações futuras do pacote ou da API.\n\n\nA função info_dados_reuniao_comissao() retorna as reuniões de uma comissão em um período quando o endpoint está disponível:\n# Reuniões da CCJ — ajuste o período conforme necessário\nreunioes_ccj &lt;- info_dados_reuniao_comissao(\n  codcol      = \"CCJ\",\n  data_inicio = \"2024-01-01\",\n  data_fim    = \"2024-03-31\"\n)\n\n\n\n\n\n\nTipComo usar os códigos de reunião\n\n\n\nO campo CodigoReuniao retornado por info_dados_reuniao_comissao() é o identificador usado nas funções seguintes:\n# 1. Listar reuniões e capturar os códigos\nreunioes &lt;- info_dados_reuniao_comissao(\n  codcol      = \"CCJ\",\n  data_inicio = \"2024-01-01\",\n  data_fim    = \"2024-03-31\"\n)\n\n# 2. Usar os códigos para buscar notas taquigráficas\ncodigos_reuniao &lt;- reunioes$CodigoReuniao[1:3]\nnotas &lt;- extrair_notas_taquigraficas(codigos_reuniao = codigos_reuniao)",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Comissões</span>"
+    ]
+  },
+  {
+    "objectID": "04-comissoes.html#notas-taquigráficas-de-uma-reunião",
+    "href": "04-comissoes.html#notas-taquigráficas-de-uma-reunião",
+    "title": "5  Comissões",
+    "section": "5.3 Notas taquigráficas de uma reunião",
+    "text": "5.3 Notas taquigráficas de uma reunião\n# Detalhes de uma reunião específica (código obtido acima)\nnota &lt;- info_dados_reuniao_nota(codigo_reuniao = \"9821\")\nnota\n#&gt; # A tibble: 1 × 6\n#&gt;   CodigoReuniao DataRealizacao Comissao PautaReuniao UrlArquivo ...\n#&gt;   &lt;chr&gt;         &lt;chr&gt;          &lt;chr&gt;    &lt;chr&gt;        &lt;chr&gt;\n#&gt; 1 9821          2024-03-20     CCJ      Ordem do Dia https://...",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Comissões</span>"
+    ]
+  },
+  {
+    "objectID": "04-comissoes.html#texto-integral-das-notas-taquigráficas",
+    "href": "04-comissoes.html#texto-integral-das-notas-taquigráficas",
+    "title": "5  Comissões",
+    "section": "5.4 Texto integral das notas taquigráficas",
+    "text": "5.4 Texto integral das notas taquigráficas\n# Forneça os códigos das reuniões\nnotas &lt;- extrair_notas_taquigraficas(codigos_reuniao = codigos_reuniao)\n\n# Ver o texto de uma nota\ncat(substr(notas$Conteudo[1], 1, 500))\n#&gt; O SR. PRESIDENTE (Rodrigo Pacheco) - Declaro aberta a 1ª Reunião\n#&gt; Ordinária da Comissão de Constituição, Justiça e Cidadania...",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Comissões</span>"
+    ]
+  },
+  {
+    "objectID": "04-comissoes.html#composição-de-comissões-por-parlamentar",
+    "href": "04-comissoes.html#composição-de-comissões-por-parlamentar",
+    "title": "5  Comissões",
+    "section": "5.5 Composição de comissões por parlamentar",
+    "text": "5.5 Composição de comissões por parlamentar\ncodigos &lt;- c(\"5672\", \"5386\", \"945\")\n\ncomissoes_parl &lt;- obter_dados_comissoes_parlamentares(codigos)\nglimpse(comissoes_parl)\n#&gt; Rows: 24\n#&gt; Columns: 5\n#&gt; $ CodigoParlamentar                &lt;chr&gt; \"5672\", \"5672\", \"5386\", ...\n#&gt; $ NomeParlamentar                  &lt;chr&gt; \"Alan Rick\", ...\n#&gt; $ IdentificacaoComissao.SiglaComissao &lt;chr&gt; \"CCJ\", \"CAS\", \"CAE\", ...\n#&gt; $ IdentificacaoComissao.NomeComissao  &lt;chr&gt; \"Comissão de Constituição...\", ...\n#&gt; $ TipoMembroComissao               &lt;chr&gt; \"Titular\", \"Suplente\", ...",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Comissões</span>"
+    ]
+  },
+  {
+    "objectID": "04-comissoes.html#análise-senadores-com-mais-participação",
+    "href": "04-comissoes.html#análise-senadores-com-mais-participação",
+    "title": "5  Comissões",
+    "section": "5.6 Análise: senadores com mais participação",
+    "text": "5.6 Análise: senadores com mais participação\nlibrary(dplyr)\nlibrary(ggplot2)\n\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x))\n\ncodigos &lt;- senadores$CodigoParlamentar[1:20]\n\ncomissoes_df &lt;- obter_dados_comissoes_parlamentares(codigos)\n\ncomissoes_df |&gt;\n  count(NomeParlamentar, sort = TRUE) |&gt;\n  slice_head(n = 10) |&gt;\n  ggplot(aes(x = reorder(NomeParlamentar, n), y = n)) +\n  geom_col(fill = \"#1a6fa8\") +\n  coord_flip() +\n  labs(title = \"Senadores com mais participações em comissões\",\n       x = NULL, y = \"Número de comissões\") +\n  theme_minimal()\n\n# A coluna de sigla de comissão tem prefixo XML:\n# comissoes_df$`IdentificacaoComissao.SiglaComissao`",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Comissões</span>"
+    ]
+  },
+  {
+    "objectID": "04-comissoes.html#exercício",
+    "href": "04-comissoes.html#exercício",
+    "title": "5  Comissões",
+    "section": "5.7 Exercício",
+    "text": "5.7 Exercício\n\n\n\n\n\n\nNoteExercício 4.1\n\n\n\nSenadores de oposição e situação costumam evitar sentar nas mesmas comissões — ou isso é um mito?\nColete as comissões de 5 a 10 senadores de partidos diferentes (use os códigos obtidos em obter_dados_senadores_legislatura(57, 57)). Existe alguma comissão em que governo e oposição coexistem? Qual partido acumula mais cadeiras de comissão por senador?\nlibrary(senatebR)\nlibrary(dplyr)\n\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))\n\n# Escolha senadores de partidos distintos\ncodigos &lt;- senadores |&gt;\n  group_by(SiglaPartidoParlamentar) |&gt;\n  slice_head(n = 1) |&gt;\n  pull(CodigoParlamentar) |&gt;\n  head(8)\n\ncomissoes_df &lt;- obter_dados_comissoes_parlamentares(codigos)\n\n\n\n\n\n\n\n\nTipUma resposta possível\n\n\n\n\n\nlibrary(senatebR)\nlibrary(dplyr)\n\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))\n\ncodigos &lt;- senadores |&gt;\n  group_by(SiglaPartidoParlamentar) |&gt;\n  slice_head(n = 1) |&gt;\n  pull(CodigoParlamentar) |&gt;\n  head(8)\n\ncomissoes_df &lt;- obter_dados_comissoes_parlamentares(codigos)\n\n# Quantas comissões por senador?\ncomissoes_df |&gt;\n  count(NomeParlamentar, sort = TRUE)\n\n# Quais comissões aparecem mais vezes (mais senadores participam)?\ncomissoes_df |&gt;\n  count(`IdentificacaoComissao.SiglaComissao`, sort = TRUE)\n\n# Interseção dois a dois entre todos os pares\npor_senador &lt;- comissoes_df |&gt;\n  select(CodigoParlamentar, NomeParlamentar,\n         SiglaComissao = `IdentificacaoComissao.SiglaComissao`) |&gt;\n  split(~ NomeParlamentar)\n\n# Senadores que compartilham a CCJ, por exemplo:\ncomissoes_df |&gt;\n  filter(`IdentificacaoComissao.SiglaComissao` == \"CCJ\") |&gt;\n  left_join(\n    senadores |&gt; select(CodigoParlamentar, SiglaPartidoParlamentar),\n    by = \"CodigoParlamentar\"\n  ) |&gt;\n  select(NomeParlamentar, SiglaPartidoParlamentar)\nVocê provavelmente vai encontrar que comissões como CCJ e CAE têm senadores de praticamente todos os partidos — a composição é proporcional à bancada, por regimento.",
+    "crumbs": [
+      "Atores Legislativos",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Comissões</span>"
+    ]
+  },
+  {
+    "objectID": "05-materias.html",
+    "href": "05-materias.html",
+    "title": "6  Matérias Legislativas",
+    "section": "",
+    "text": "6.1 Tipos de matérias legislativas\nO que o Senado realmente legisla? A grande maioria das matérias nunca vira lei — elas tramitam, são arquivadas ou ficam paradas por anos. Este capítulo mostra como mapear o universo de propostas e identificar padrões de tramitação.\nO Senado classifica as matérias por sigla:\nAs siglas mais comuns:",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Matérias Legislativas</span>"
+    ]
+  },
+  {
+    "objectID": "05-materias.html#tipos-de-matérias-legislativas",
+    "href": "05-materias.html#tipos-de-matérias-legislativas",
+    "title": "6  Matérias Legislativas",
+    "section": "",
+    "text": "library(senatebR)\n\nsiglas &lt;- extrair_siglas_ativas()\nhead(siglas)\n#&gt; # A tibble: 6 × 4\n#&gt;    Sigla Descricao                               DataInicio  DataFim\n#&gt;    &lt;chr&gt; &lt;chr&gt;                                   &lt;chr&gt;       &lt;chr&gt;\n#&gt;  1 ACE   Aviso da Comissão de Educação           2017-01-01  2024-09-18\n#&gt;  2 ACL   Ato Conjunto Legislativo                2023-01-01  &lt;NA&gt;\n#&gt;  3 AP    Ato da Presidência                      2017-01-01  &lt;NA&gt;\n#&gt;  4 MPV   Medida Provisória                       2017-01-01  &lt;NA&gt;\n#&gt;  5 PEC   Proposta de Emenda à Constituição       2017-01-01  &lt;NA&gt;\n#&gt;  6 PL    Projeto de Lei                          2017-01-01  &lt;NA&gt;\n\n\n\n\nSigla\nTipo\n\n\n\n\nPL\nProjeto de Lei\n\n\nPEC\nProposta de Emenda à Constituição\n\n\nMPV\nMedida Provisória\n\n\nPLS\nProjeto de Lei do Senado (nomenclatura anterior a 2019)\n\n\nPDL\nProjeto de Decreto Legislativo\n\n\nPRS\nProjeto de Resolução do Senado",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Matérias Legislativas</span>"
+    ]
+  },
+  {
+    "objectID": "05-materias.html#matérias-da-legislatura-atual",
+    "href": "05-materias.html#matérias-da-legislatura-atual",
+    "title": "6  Matérias Legislativas",
+    "section": "6.2 Matérias da legislatura atual",
+    "text": "6.2 Matérias da legislatura atual\n# Todas as matérias em tramitação na legislatura atual\nmaterias &lt;- materias_legislatura_atual()\nglimpse(materias)\n#&gt; Rows: 4521\n#&gt; Columns: 9\n#&gt; $ CodigoMateria                  &lt;chr&gt; \"158423\", \"158100\", ...\n#&gt; $ SiglaCasaIdentificacaoMateria  &lt;chr&gt; \"SF\", \"SF\", ...\n#&gt; $ NomeCasaIdentificacaoMateria   &lt;chr&gt; \"Senado Federal\", ...\n#&gt; $ SiglaSubtipoMateria            &lt;chr&gt; \"PL\", \"PEC\", \"MPV\", ...\n#&gt; $ NumeroMateria                  &lt;chr&gt; \"1234\", \"45\", ...\n#&gt; $ AnoMateria                     &lt;chr&gt; \"2024\", \"2023\", ...\n#&gt; $ DescricaoIdentificacaoMateria  &lt;chr&gt; \"PL 1234/2024\", ...\n#&gt; $ IndicadorTramitando            &lt;chr&gt; \"S\", \"N\", ...\n#&gt; $ IdentificacaoProcesso          &lt;chr&gt; NA, NA, ...\n\n\n\n\n\n\nNote\n\n\n\nEsta função pode retornar mais de 4 000 linhas. Use os filtros abaixo para trabalhar com subconjuntos menores e evitar lentidão.\nAtenção: a coluna AnoMateria contém apenas o ano de apresentação (ex: \"2024\"), não uma data completa. Não há coluna de data no retorno desta função. Para obter a data e a ementa, use info_atualizacao_materias().\n\n\nlibrary(dplyr)\n\n# Filtrar apenas PECs\npecs &lt;- materias |&gt;\n  filter(SiglaSubtipoMateria == \"PEC\")\n\n# Matérias em tramitação (IndicadorTramitando == \"S\")\nem_tramitacao &lt;- materias |&gt;\n  filter(IndicadorTramitando == \"S\")\n\n# Contagem por tipo\nmaterias |&gt;\n  count(SiglaSubtipoMateria, sort = TRUE)\n#&gt; # A tibble: 28 × 2\n#&gt;    SiglaSubtipoMateria     n\n#&gt;    &lt;chr&gt;               &lt;int&gt;\n#&gt;  1 PL                   2841\n#&gt;  2 PDL                   612\n#&gt;  3 PEC                   210\n#&gt;  4 PRS                   187\n#&gt;  5 MPV                   143\n#&gt;  ...\nIndicadorTramitando assume dois valores:\n\n\n\nValor\nSignificado\n\n\n\n\n\"S\"\nAinda em tramitação\n\n\n\"N\"\nTramitação encerrada",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Matérias Legislativas</span>"
+    ]
+  },
+  {
+    "objectID": "05-materias.html#temas-de-matérias",
+    "href": "05-materias.html#temas-de-matérias",
+    "title": "6  Matérias Legislativas",
+    "section": "6.3 Temas de matérias",
+    "text": "6.3 Temas de matérias\n# Lista de temas/assuntos cadastrados\ntemas &lt;- info_materia_temas()\nhead(temas)\n#&gt; # A tibble: 6 × 5\n#&gt;   Codigo AssuntoGeral     AssuntoEspecifico       DataInicio DataFim\n#&gt;   &lt;chr&gt;  &lt;chr&gt;            &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;\n#&gt; 1 1      Administração    Administração Pública    NA         NA\n#&gt; 2 2      Agricultura      Reforma Agrária          NA         NA\n#&gt; 3 3      Ciência          Tecnologia               NA         NA\n#&gt; 4 4      Comunicações     Telecomunicações         NA         NA\n#&gt; 5 5      Direitos Humanos Direitos Fundamentais    NA         NA\n#&gt; 6 6      Economia         Finanças Públicas        NA         NA\nAs colunas:\n\n\n\nColuna\nDescrição\n\n\n\n\nCodigo\nCódigo do tema\n\n\nAssuntoGeral\nÁrea temática geral\n\n\nAssuntoEspecifico\nSubtema específico\n\n\nDataInicio / DataFim\nVigência do tema no sistema",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Matérias Legislativas</span>"
+    ]
+  },
+  {
+    "objectID": "05-materias.html#situações-de-tramitação",
+    "href": "05-materias.html#situações-de-tramitação",
+    "title": "6  Matérias Legislativas",
+    "section": "6.4 Situações de tramitação",
+    "text": "6.4 Situações de tramitação\nsituacoes &lt;- extrair_situacoes_tramitacao()\nhead(situacoes)\n#&gt; # A tibble: 6 × 4\n#&gt;   Codigo Sigla Descricao                           DataCriacao\n#&gt;   &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;                               &lt;chr&gt;\n#&gt; 1 1      APS   Aguardando Pauta no Senado          NA\n#&gt; 2 2      AGC   Aguardando Complementação           NA\n#&gt; 3 3      APR   Aguardando Promulgação               NA\n#&gt; ...\nAs colunas:\n\n\n\nColuna\nDescrição\n\n\n\n\nCodigo\nCódigo interno da situação\n\n\nSigla\nSigla abreviada\n\n\nDescricao\nDescrição completa\n\n\nDataCriacao\nData de criação no sistema",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Matérias Legislativas</span>"
+    ]
+  },
+  {
+    "objectID": "05-materias.html#classificações-de-matéria",
+    "href": "05-materias.html#classificações-de-matéria",
+    "title": "6  Matérias Legislativas",
+    "section": "6.5 Classificações de matéria",
+    "text": "6.5 Classificações de matéria\nclassificacoes &lt;- extrair_classificacoes_materia()\nhead(classificacoes)\n#&gt; # A tibble: 6 × 6\n#&gt;   CodigoClasse NomeClasse         CodigoClassePai Nivel Tree  Path\n#&gt;   &lt;chr&gt;        &lt;chr&gt;              &lt;chr&gt;           &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;\n#&gt; 1 1            Administração      NA              1     1     Administração\n#&gt; 2 2            Administração Pública 1            2     1.2   Administração &gt; ...\n#&gt; ...\nAs colunas:\n\n\n\n\n\n\n\nColuna\nDescrição\n\n\n\n\nCodigoClasse\nCódigo da classificação\n\n\nNomeClasse\nNome da classe temática\n\n\nCodigoClassePai\nCódigo da classe superior (hierarquia)\n\n\nNivel\nNível hierárquico (1 = raiz)\n\n\nTree\nCódigo completo na árvore\n\n\nPath\nCaminho legível (ex: \"Administração &gt; Administração Pública\")",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Matérias Legislativas</span>"
+    ]
+  },
+  {
+    "objectID": "05-materias.html#matérias-atualizadas-recentemente",
+    "href": "05-materias.html#matérias-atualizadas-recentemente",
+    "title": "6  Matérias Legislativas",
+    "section": "6.6 Matérias atualizadas recentemente",
+    "text": "6.6 Matérias atualizadas recentemente\nUse info_atualizacao_materias() para monitorar matérias que tiveram movimentação recente:\n# Matérias com atualização recente\natualizadas &lt;- info_atualizacao_materias()\nglimpse(atualizadas)\n#&gt; Rows: 87\n#&gt; Columns: 16\n#&gt; $ TipoSubtipoMateria    &lt;chr&gt; \"PL\", \"MPV\", ...\n#&gt; $ DataApresentacao      &lt;chr&gt; \"2024-03-01\", \"2024-01-10\", ...\n#&gt; $ DataUltimaAtualizacao &lt;chr&gt; \"2024-04-17\", \"2024-04-15\", ...\n#&gt; $ EmentaMateria         &lt;chr&gt; \"Dispõe sobre crédito...\", ...\n#&gt; $ IndicadorTramitando   &lt;chr&gt; \"S\", \"S\", ...\n#&gt; ...\n\n\n\n\n\n\nTip\n\n\n\ninfo_atualizacao_materias() é útil para monitorar a pauta legislativa sem precisar baixar toda a lista de matérias a cada execução. Ela inclui a ementa (EmentaMateria) e a data de apresentação (DataApresentacao), que não estão disponíveis em materias_legislatura_atual().",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Matérias Legislativas</span>"
+    ]
+  },
+  {
+    "objectID": "05-materias.html#análise-volume-de-matérias-por-tipo",
+    "href": "05-materias.html#análise-volume-de-matérias-por-tipo",
+    "title": "6  Matérias Legislativas",
+    "section": "6.7 Análise: volume de matérias por tipo",
+    "text": "6.7 Análise: volume de matérias por tipo\nlibrary(ggplot2)\n\nmaterias |&gt;\n  count(SiglaSubtipoMateria, sort = TRUE) |&gt;\n  slice_head(n = 8) |&gt;\n  ggplot(aes(x = reorder(SiglaSubtipoMateria, n), y = n)) +\n  geom_col(fill = \"#2d6a4f\") +\n  coord_flip() +\n  labs(\n    title = \"Matérias por tipo na legislatura atual\",\n    x = \"Tipo\", y = \"Quantidade\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Matérias Legislativas</span>"
+    ]
+  },
+  {
+    "objectID": "05-materias.html#análise-volume-por-ano-de-apresentação",
+    "href": "05-materias.html#análise-volume-por-ano-de-apresentação",
+    "title": "6  Matérias Legislativas",
+    "section": "6.8 Análise: volume por ano de apresentação",
+    "text": "6.8 Análise: volume por ano de apresentação\nComo AnoMateria já é o ano em formato texto, basta converter para inteiro:\nmaterias |&gt;\n  filter(!is.na(AnoMateria)) |&gt;\n  mutate(Ano = as.integer(AnoMateria)) |&gt;\n  count(Ano, SiglaSubtipoMateria) |&gt;\n  filter(SiglaSubtipoMateria %in% c(\"PL\", \"PEC\", \"MPV\")) |&gt;\n  ggplot(aes(x = Ano, y = n, color = SiglaSubtipoMateria)) +\n  geom_line(linewidth = 1) +\n  geom_point() +\n  labs(\n    title = \"Volume de matérias ao longo do tempo\",\n    x = \"Ano\", y = \"Quantidade\", color = \"Tipo\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Matérias Legislativas</span>"
+    ]
+  },
+  {
+    "objectID": "05-materias.html#exercício",
+    "href": "05-materias.html#exercício",
+    "title": "6  Matérias Legislativas",
+    "section": "6.9 Exercício",
+    "text": "6.9 Exercício\n\n\n\n\n\n\nNoteExercício 5.1\n\n\n\nPLs são muito mais comuns que PECs — mas quais tipos de matéria têm maior taxa de tramitação ativa? Em outras palavras, qual sigla gera mais projetos que ficam parados (IndicadorTramitando == \"N\") versus os que continuam em análise?\nAlém disso: os anos eleitorais (2022, 2024…) produzem mais ou menos matérias do que os anos não eleitorais? O que você esperaria encontrar — e o resultado confirma sua hipótese?\nmaterias &lt;- materias_legislatura_atual()\n\n\n\n\n\n\n\n\nTipUma resposta possível\n\n\n\n\n\nlibrary(senatebR)\nlibrary(dplyr)\nlibrary(ggplot2)\n\nmaterias &lt;- materias_legislatura_atual()\n\n# Taxa de tramitação ativa por tipo\nmaterias |&gt;\n  group_by(SiglaSubtipoMateria) |&gt;\n  summarise(\n    total       = n(),\n    tramitando  = sum(IndicadorTramitando == \"S\"),\n    taxa_ativa  = tramitando / total,\n    .groups     = \"drop\"\n  ) |&gt;\n  filter(total &gt;= 20) |&gt;\n  arrange(desc(taxa_ativa))\n# MPVs tendem a ter alta taxa ativa (têm prazo legal) enquanto PLs acumulam muitos arquivados\n\n# Matérias por ano x anos eleitorais\nmaterias |&gt;\n  filter(!is.na(AnoMateria)) |&gt;\n  mutate(\n    Ano          = as.integer(AnoMateria),\n    ano_eleitoral = (Ano %% 2 == 0)\n  ) |&gt;\n  count(Ano, ano_eleitoral) |&gt;\n  ggplot(aes(x = Ano, y = n, fill = ano_eleitoral)) +\n  geom_col() +\n  scale_fill_manual(\n    values = c(\"FALSE\" = \"#5ba4cf\", \"TRUE\" = \"#e76f51\"),\n    labels = c(\"Não eleitoral\", \"Eleitoral\")\n  ) +\n  labs(title = \"Matérias por ano de apresentação\",\n       subtitle = \"Anos eleitorais em destaque\",\n       x = NULL, y = \"Quantidade\", fill = NULL) +\n  theme_minimal()\nA hipótese mais comum é que anos eleitorais produzem mais PLs (ativismo legislativo para visibilidade). Os dados do Senado permitem testar isso — mas lembre que a 57ª legislatura começa em 2023, então anos anteriores refletem múltiplas legislaturas acumuladas.",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Matérias Legislativas</span>"
+    ]
+  },
+  {
+    "objectID": "06-votacoes.html",
+    "href": "06-votacoes.html",
+    "title": "7  Votações",
+    "section": "",
+    "text": "7.1 Votações de senadores específicos\nA votação nominal é onde a posição de cada senador fica registrada para sempre. Os partidos votam em bloco ou cada senador decide por conta própria? Qual é a taxa de aprovação das pautas do governo? Este capítulo mostra como extrair e analisar esse registro.\nA função coletar_votacoes_multiplos() retorna o voto de cada senador em cada votação:\nOs valores de votacoes_SiglaDescricaoVoto (o voto efetivo do senador):",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Votações</span>"
+    ]
+  },
+  {
+    "objectID": "06-votacoes.html#votações-de-senadores-específicos",
+    "href": "06-votacoes.html#votações-de-senadores-específicos",
+    "title": "7  Votações",
+    "section": "",
+    "text": "library(senatebR)\nlibrary(dplyr)\n\n# Coletar votações de 3 senadores no ano de 2023\ncodigos &lt;- c(\"5672\", \"5386\", \"945\")\nanos    &lt;- 2023\n\nvotacoes &lt;- coletar_votacoes_multiplos(codigos, anos)\nglimpse(votacoes)\n#&gt; Rows: 296\n#&gt; Columns: 43\n#&gt; $ codigo_senador                   &lt;chr&gt; \"5672\", \"5672\", ...\n#&gt; $ ano                              &lt;dbl&gt; 2023, 2023, ...\n#&gt; $ votacoes_CodigoSessaoVotacao     &lt;chr&gt; \"6674\", \"6677\", ...\n#&gt; $ votacoes_DescricaoVotacao        &lt;chr&gt; \"Votação nominal do PL nº 1/2023\", ...\n#&gt; $ votacoes_DescricaoResultado      &lt;chr&gt; \"Aprovado\", \"Rejeitado\", ...\n#&gt; $ votacoes_SiglaDescricaoVoto      &lt;chr&gt; \"Sim\", \"Não\", \"AP\", ...\n#&gt; $ votacoes_DescricaoVoto           &lt;chr&gt; NA, NA, \"Atividade parlamentar\", ...\n#&gt; $ votacoes_SessaoPlenaria.DataSessao &lt;chr&gt; \"2023-02-08\", ...\n#&gt; $ votacoes_Materia.Sigla           &lt;chr&gt; \"PDL\", \"PL\", ...\n#&gt; $ votacoes_Materia.Ementa          &lt;chr&gt; \"Aprova o texto...\", ...\n\n\n\n\n\n\n\n\nSigla\nSignificado\n\n\n\n\n\"Sim\"\nVotou favoravelmente\n\n\n\"Não\"\nVotou contrariamente\n\n\n\"Abstenção\"\nPresente, mas se absteve formalmente\n\n\n\"P-NRV\"\nPresente — Não registrou voto\n\n\n\"AP\"\nAusente — Atividade parlamentar\n\n\n\"MIS\"\nAusente — Missão da Casa no País/exterior\n\n\n\"Votou\"\nVoto registrado em sessão secreta (sem discriminar Sim/Não)\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nO campo votacoes_DescricaoVoto só é preenchido quando o senador está ausente e há uma justificativa registrada. Para o voto em si, use sempre votacoes_SiglaDescricaoVoto.",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Votações</span>"
+    ]
+  },
+  {
+    "objectID": "06-votacoes.html#votações-nominais-por-ano",
+    "href": "06-votacoes.html#votações-nominais-por-ano",
+    "title": "7  Votações",
+    "section": "7.2 Votações nominais por ano",
+    "text": "7.2 Votações nominais por ano\nextrair_votacoes_nominais_por_ano() retorna os votos de todos os senadores por votação — ideal para análises de coesão e disciplina:\n# Todas as votações nominais de 2023\nnominais_2023 &lt;- extrair_votacoes_nominais_por_ano(anos = 2023)\nglimpse(nominais_2023)\n#&gt; Rows: 11421\n#&gt; Columns: 37\n#&gt; $ CodigoSessaoVotacao     &lt;chr&gt; \"6674\", \"6674\", ...\n#&gt; $ DataSessao              &lt;chr&gt; \"2023-02-08\", \"2023-02-08\", ...\n#&gt; $ DescricaoVotacao        &lt;chr&gt; \"Votação nominal do PDL nº 2/2023\", ...\n#&gt; $ Resultado               &lt;chr&gt; \"A\", \"A\", ...   # A=Aprovado, R=Rejeitado\n#&gt; $ TotalVotosSim           &lt;chr&gt; \"72\", \"72\", ...\n#&gt; $ TotalVotosNao           &lt;chr&gt; \"2\", \"2\", ...\n#&gt; $ Votos.CodigoParlamentar &lt;chr&gt; \"22\", \"5905\", ...\n#&gt; $ Votos.NomeParlamentar   &lt;chr&gt; \"Esperidião Amin\", \"Rodrigo Cunha\", ...\n#&gt; $ Votos.SiglaPartido      &lt;chr&gt; \"PP\", \"UNIÃO\", ...\n#&gt; $ Votos.SiglaUF           &lt;chr&gt; \"SC\", \"AL\", ...\n#&gt; $ Votos.Voto              &lt;chr&gt; \"Votou\", \"Votou\", ...\n#&gt; $ Votos.DescricaoVoto     &lt;chr&gt; NA, NA, ...\n#&gt; $ SiglaMateria            &lt;chr&gt; \"PDL\", \"PDL\", ...\n#&gt; $ Secreta                 &lt;chr&gt; \"S\", \"N\", ...\n#&gt; $ Ano                     &lt;dbl&gt; 2023, 2023, ...\n# Múltiplos anos\nnominais &lt;- extrair_votacoes_nominais_por_ano(anos = c(2021, 2022, 2023))",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Votações</span>"
+    ]
+  },
+  {
+    "objectID": "06-votacoes.html#votações-em-plenário-por-ano",
+    "href": "06-votacoes.html#votações-em-plenário-por-ano",
+    "title": "7  Votações",
+    "section": "7.3 Votações em plenário por ano",
+    "text": "7.3 Votações em plenário por ano\nextrair_votacoes_por_ano() retorna o resultado agregado de cada votação (sem detalhe por senador):\nvotacoes_2023 &lt;- extrair_votacoes_por_ano(anos = 2023)\nglimpse(votacoes_2023)\n#&gt; Rows: 141\n#&gt; Columns: 22\n#&gt; $ data_sessao             &lt;chr&gt; \"2023-02-08\", ...\n#&gt; $ codigo_sessao_votacao   &lt;chr&gt; \"6674\", ...\n#&gt; $ descricao_votacao       &lt;chr&gt; \"Votação nominal do PDL nº 2/2023\", ...\n#&gt; $ resultado               &lt;chr&gt; \"A\", ...   # A=Aprovado, R=Rejeitado\n#&gt; $ total_votos_sim         &lt;chr&gt; \"72\", ...\n#&gt; $ total_votos_nao         &lt;chr&gt; \"2\", ...\n#&gt; $ total_votos_abstencao   &lt;chr&gt; \"1\", ...\n#&gt; $ sigla_materia           &lt;chr&gt; \"PDL\", ...\n#&gt; $ numero_materia          &lt;chr&gt; \"2\", ...",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Votações</span>"
+    ]
+  },
+  {
+    "objectID": "06-votacoes.html#orientação-de-bancadas",
+    "href": "06-votacoes.html#orientação-de-bancadas",
+    "title": "7  Votações",
+    "section": "7.4 Orientação de bancadas",
+    "text": "7.4 Orientação de bancadas\n# Orientação em uma data de sessão com votação registrada\norientacao &lt;- coletar_orientacao_votacao(data_sessao = \"2023-09-20\")\norientacao",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Votações</span>"
+    ]
+  },
+  {
+    "objectID": "06-votacoes.html#análise-de-coesão-partidária",
+    "href": "06-votacoes.html#análise-de-coesão-partidária",
+    "title": "7  Votações",
+    "section": "7.5 Análise de coesão partidária",
+    "text": "7.5 Análise de coesão partidária\nUma das análises mais clássicas em ciência política. Use extrair_votacoes_nominais_por_ano(), que já contém o voto de todos os senadores:\nlibrary(ggplot2)\n\n# 1. Votações nominais abertas (excluir votações secretas)\nnominais &lt;- extrair_votacoes_nominais_por_ano(anos = 2023) |&gt;\n  filter(Secreta == \"N\",\n         Votos.Voto %in% c(\"Sim\", \"Não\", \"Abstenção\"))\n\n# 2. Calcular coesão por partido e votação\ncoesao &lt;- nominais |&gt;\n  group_by(Votos.SiglaPartido, CodigoSessaoVotacao) |&gt;\n  mutate(\n    voto_majoritario = names(sort(table(Votos.Voto), decreasing = TRUE))[1]\n  ) |&gt;\n  summarise(\n    coesao    = mean(Votos.Voto == voto_majoritario),\n    n_membros = n(),\n    .groups   = \"drop\"\n  ) |&gt;\n  filter(n_membros &gt;= 3) |&gt;\n  group_by(Votos.SiglaPartido) |&gt;\n  summarise(coesao_media = mean(coesao), .groups = \"drop\") |&gt;\n  arrange(desc(coesao_media))\n\n# 3. Visualizar\nggplot(coesao, aes(x = reorder(Votos.SiglaPartido, coesao_media),\n                   y = coesao_media)) +\n  geom_col(fill = \"#e76f51\") +\n  coord_flip() +\n  scale_y_continuous(labels = scales::percent) +\n  labs(\n    title = \"Coesão partidária nas votações nominais abertas (2023)\",\n    x = NULL, y = \"Coesão média\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Votações</span>"
+    ]
+  },
+  {
+    "objectID": "06-votacoes.html#análise-de-similaridade-de-votação",
+    "href": "06-votacoes.html#análise-de-similaridade-de-votação",
+    "title": "7  Votações",
+    "section": "7.6 Análise de similaridade de votação",
+    "text": "7.6 Análise de similaridade de votação\nQuais senadores votam de forma mais parecida? Use a matriz de votos para calcular concordância entre pares:\nlibrary(tidyr)\n\n# 1. Filtrar votações abertas com voto explícito\nnominais_limpos &lt;- extrair_votacoes_nominais_por_ano(anos = 2023) |&gt;\n  filter(Secreta == \"N\",\n         Votos.Voto %in% c(\"Sim\", \"Não\")) |&gt;\n  mutate(voto_num = ifelse(Votos.Voto == \"Sim\", 1, 0))\n\n# 2. Criar matriz senador × votação\nmatriz_votos &lt;- nominais_limpos |&gt;\n  select(Votos.CodigoParlamentar, CodigoSessaoVotacao, voto_num) |&gt;\n  pivot_wider(\n    names_from  = CodigoSessaoVotacao,\n    values_from = voto_num,\n    values_fill = NA\n  )\n\n# 3. Calcular proporção de concordância entre pares\nids &lt;- matriz_votos$Votos.CodigoParlamentar\nmat &lt;- as.matrix(matriz_votos[, -1])\n\nconcordancia &lt;- outer(\n  seq_len(nrow(mat)),\n  seq_len(nrow(mat)),\n  Vectorize(function(i, j) {\n    em_comum &lt;- !is.na(mat[i, ]) & !is.na(mat[j, ])\n    if (sum(em_comum) &lt; 5) return(NA_real_)\n    mean(mat[i, em_comum] == mat[j, em_comum])\n  })\n)\nrownames(concordancia) &lt;- ids\ncolnames(concordancia) &lt;- ids\n\n# 4. Top 10 pares com maior concordância\nas.data.frame(as.table(concordancia)) |&gt;\n  setNames(c(\"senador_a\", \"senador_b\", \"concordancia\")) |&gt;\n  filter(senador_a &lt; senador_b, !is.na(concordancia)) |&gt;\n  arrange(desc(concordancia)) |&gt;\n  slice_head(n = 10)",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Votações</span>"
+    ]
+  },
+  {
+    "objectID": "06-votacoes.html#exercício",
+    "href": "06-votacoes.html#exercício",
+    "title": "7  Votações",
+    "section": "7.7 Exercício",
+    "text": "7.7 Exercício\n\n\n\n\n\n\nNoteExercício 6.1\n\n\n\nOposição vota “Não” por princípio ou avalia caso a caso?\nTome os partidos com mais senadores (PL, PSD, MDB, PT) e calcule, para cada um, a taxa de votos “Sim” nas votações abertas de 2023. Você esperaria que partidos do governo votassem mais “Sim” do que a oposição? Os dados confirmam isso?\nVá além: existe uma votação específica onde um partido surpreendeu — votou diferente do que sua posição pública sugeriria?\nnominais &lt;- extrair_votacoes_nominais_por_ano(anos = 2023) |&gt;\n  filter(Secreta == \"N\", Votos.Voto %in% c(\"Sim\", \"Não\"))\n\n\n\n\n\n\n\n\nTipUma resposta possível\n\n\n\n\n\nlibrary(senatebR)\nlibrary(dplyr)\nlibrary(ggplot2)\n\nnominais &lt;- extrair_votacoes_nominais_por_ano(anos = 2023) |&gt;\n  filter(Secreta == \"N\", Votos.Voto %in% c(\"Sim\", \"Não\"))\n\ntaxa_sim &lt;- nominais |&gt;\n  group_by(Votos.SiglaPartido) |&gt;\n  summarise(\n    total_votos = n(),\n    votos_sim   = sum(Votos.Voto == \"Sim\"),\n    taxa_sim    = votos_sim / total_votos,\n    .groups     = \"drop\"\n  ) |&gt;\n  filter(total_votos &gt;= 20) |&gt;\n  arrange(desc(taxa_sim))\n\nggplot(taxa_sim,\n       aes(x = reorder(Votos.SiglaPartido, taxa_sim), y = taxa_sim)) +\n  geom_col(fill = \"#003580\") +\n  geom_hline(yintercept = 0.5, linetype = \"dashed\", color = \"gray50\") +\n  coord_flip() +\n  scale_y_continuous(labels = scales::percent) +\n  labs(title = \"Taxa de votos 'Sim' por partido (2023)\",\n       subtitle = \"Votações nominais abertas\",\n       x = NULL, y = \"% votos Sim\") +\n  theme_minimal()\nPartidos de governo tipicamente aparecem acima de 70% de “Sim”; oposição dura abaixo de 40%. O interessante é observar os partidos de centro, que oscilam dependendo da matéria.",
+    "crumbs": [
+      "Atividade Legislativa",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Votações</span>"
+    ]
+  },
+  {
+    "objectID": "07-discursos.html",
+    "href": "07-discursos.html",
+    "title": "8  Discursos e Pronunciamentos",
+    "section": "",
+    "text": "8.1 Discursos de um senador\nQuem discursa mais no Senado — e sobre o quê? Os dados de pronunciamentos permitem mapear a agenda temática de cada senador, comparar o volume de fala entre partidos e identificar picos de atividade retórica em períodos de crise ou votações importantes.\nAs principais colunas:",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Discursos e Pronunciamentos</span>"
+    ]
+  },
+  {
+    "objectID": "07-discursos.html#discursos-de-um-senador",
+    "href": "07-discursos.html#discursos-de-um-senador",
+    "title": "8  Discursos e Pronunciamentos",
+    "section": "",
+    "text": "library(senatebR)\n\n# Discursos de um senador em um período\ndiscursos &lt;- extrair_discursos(\n  codigo_senador = \"5672\",\n  data_inicio    = \"2023-01-01\",\n  data_fim       = \"2023-12-31\"\n)\nglimpse(discursos)\n#&gt; Rows: 47\n#&gt; Columns: 7\n#&gt; $ CodigoPronunciamento &lt;chr&gt; \"501476\", \"501312\", ...\n#&gt; $ DataPronunciamento   &lt;chr&gt; \"2023-10-17\", \"2023-09-05\", ...\n#&gt; $ TextoResumo          &lt;chr&gt; \"O senador discorreu sobre...\", ...\n#&gt; $ UrlTexto             &lt;chr&gt; \"https://legis.senado.leg.br/...\", ...\n#&gt; $ UrlTextoBinario      &lt;chr&gt; NA, NA, ...\n#&gt; $ DataSessao           &lt;chr&gt; \"2023-10-17\", \"2023-09-05\", ...\n#&gt; $ HoraInicioSessao     &lt;chr&gt; \"14:00\", \"10:00\", ...\n\n\n\n\n\n\n\n\nColuna\nDescrição\n\n\n\n\nCodigoPronunciamento\nIdentificador único\n\n\nDataPronunciamento\nData do discurso (\"YYYY-MM-DD\")\n\n\nTextoResumo\nResumo do conteúdo (texto curto)\n\n\nUrlTexto\nLink para o texto integral no site do Senado\n\n\nUrlTextoBinario\nLink para arquivo binário (PDF/DOC), quando disponível\n\n\nDataSessao\nData da sessão em que ocorreu o pronunciamento\n\n\nHoraInicioSessao\nHora de início da sessão\n\n\n\n\n\n\n\n\n\nTipAcessando o texto integral\n\n\n\nO campo TextoResumo contém apenas o resumo. Para obter o texto completo, acesse a URL em UrlTexto:\nlibrary(httr)\nlibrary(xml2)\n\n# Baixar o texto integral do primeiro discurso\nurl_texto &lt;- discursos$UrlTexto[1]\n\nif (!is.na(url_texto)) {\n  resp  &lt;- GET(url_texto)\n  texto &lt;- read_html(content(resp, \"text\", encoding = \"UTF-8\"))\n  # Extrair parágrafos do texto\n  paragrafos &lt;- xml_text(xml_find_all(texto, \".//p\"))\n  cat(paste(paragrafos, collapse = \"\\n\"))\n}\nNote que o layout das páginas pode variar — verifique a estrutura HTML caso o seletor .//p não retorne o conteúdo esperado.",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Discursos e Pronunciamentos</span>"
+    ]
+  },
+  {
+    "objectID": "07-discursos.html#pronunciamentos-de-múltiplos-senadores",
+    "href": "07-discursos.html#pronunciamentos-de-múltiplos-senadores",
+    "title": "8  Discursos e Pronunciamentos",
+    "section": "8.2 Pronunciamentos de múltiplos senadores",
+    "text": "8.2 Pronunciamentos de múltiplos senadores\nA função extrair_pronunciamentos_multi() aceita um vetor de códigos e um vetor de anos:\ncodigos &lt;- c(\"5672\", \"5386\", \"945\")\n\npronunciamentos &lt;- extrair_pronunciamentos_multi(\n  codigos_parlamentares = codigos,\n  anos                  = c(2022, 2023)\n)\nglimpse(pronunciamentos)\n#&gt; Rows: 84\n#&gt; Columns: 8\n#&gt; $ Codigo_Parlamentar    &lt;chr&gt; \"5672\", \"5672\", \"5386\", ...\n#&gt; $ Ano                   &lt;dbl&gt; 2023, 2023, ...\n#&gt; $ Data_Pronunciamento   &lt;chr&gt; \"07/11/2023\", \"17/10/2023\", ...\n#&gt; $ Tipo_Pronunciamento   &lt;chr&gt; \"Pela ordem\", \"Discussão\", \"Discurso\", ...\n#&gt; $ Casa                  &lt;chr&gt; \"Senado Federal\", \"Senado Federal\", ...\n#&gt; $ Partido_UF            &lt;chr&gt; \"UNIÃO/AC\", \"UNIÃO/AC\", ...\n#&gt; $ Resumo_Pronunciamento &lt;chr&gt; \"O senador discorreu sobre...\", ...\n#&gt; $ Link_Pronunciamento   &lt;chr&gt; \"https://...\", ...\n\n\n\n\n\n\nImportantAtenção: nomes de colunas distintos entre funções\n\n\n\nextrair_pronunciamentos_multi() usa nomes com sublinhado (Codigo_Parlamentar, Data_Pronunciamento, Resumo_Pronunciamento, Link_Pronunciamento), enquanto extrair_discursos() usa CamelCase (CodigoPronunciamento, DataPronunciamento, TextoResumo, UrlTexto). Adapte seu código conforme a função usada.\n\n\n\n\n\n\n\n\nNote\n\n\n\nO argumento anos recebe um vetor de anos inteiros (ex: c(2022, 2023)), não datas no formato texto.",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Discursos e Pronunciamentos</span>"
+    ]
+  },
+  {
+    "objectID": "07-discursos.html#notas-taquigráficas",
+    "href": "07-discursos.html#notas-taquigráficas",
+    "title": "8  Discursos e Pronunciamentos",
+    "section": "8.3 Notas taquigráficas",
+    "text": "8.3 Notas taquigráficas\nAs notas taquigráficas contêm o texto integral do que foi dito nas reuniões de comissão. Use os códigos de reunião obtidos via info_dados_reuniao_comissao():\n# Use os códigos de reunião (obtidos em info_dados_reuniao_comissao())\nnotas &lt;- extrair_notas_taquigraficas(codigos_reuniao = c(\"9821\", \"9756\"))\n\n# Ver o texto de uma nota\ncat(substr(notas$Conteudo[1], 1, 500))\n#&gt; O SR. PRESIDENTE (Rodrigo Pacheco) - Declaro aberta a reunião...",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Discursos e Pronunciamentos</span>"
+    ]
+  },
+  {
+    "objectID": "07-discursos.html#análise-de-frequência-de-discursos",
+    "href": "07-discursos.html#análise-de-frequência-de-discursos",
+    "title": "8  Discursos e Pronunciamentos",
+    "section": "8.4 Análise de frequência de discursos",
+    "text": "8.4 Análise de frequência de discursos\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(lubridate)\n\n# extrair_discursos() retorna DataPronunciamento em formato \"YYYY-MM-DD\"\ndiscursos |&gt;\n  mutate(Mes = floor_date(as.Date(DataPronunciamento), \"month\")) |&gt;\n  count(Mes) |&gt;\n  ggplot(aes(x = Mes, y = n)) +\n  geom_line(color = \"#6a4c93\", linewidth = 1) +\n  geom_point(color = \"#6a4c93\") +\n  labs(\n    title = \"Volume de discursos por mês\",\n    x = NULL, y = \"Número de discursos\"\n  ) +\n  theme_minimal()\n\n# extrair_pronunciamentos_multi() usa Data_Pronunciamento em \"DD/MM/YYYY\"\npronunciamentos |&gt;\n  mutate(Mes = floor_date(as.Date(Data_Pronunciamento, \"%d/%m/%Y\"), \"month\")) |&gt;\n  count(Codigo_Parlamentar, Mes) |&gt;\n  ggplot(aes(x = Mes, y = n, color = Codigo_Parlamentar)) +\n  geom_line(linewidth = 1) +\n  labs(title = \"Volume de pronunciamentos mensais por senador\",\n       x = NULL, y = \"Número de pronunciamentos\", color = \"Código\") +\n  theme_minimal()",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Discursos e Pronunciamentos</span>"
+    ]
+  },
+  {
+    "objectID": "07-discursos.html#análise-de-texto-palavras-mais-frequentes",
+    "href": "07-discursos.html#análise-de-texto-palavras-mais-frequentes",
+    "title": "8  Discursos e Pronunciamentos",
+    "section": "8.5 Análise de texto: palavras mais frequentes",
+    "text": "8.5 Análise de texto: palavras mais frequentes\nUse o pacote tidytext para tokenização robusta. Stopwords em português requerem o pacote stopwords:\n# install.packages(c(\"tidytext\", \"stopwords\"))\nlibrary(tidytext)\nlibrary(stopwords)\nlibrary(dplyr)\n\n# Stopwords em português\nsw_pt &lt;- tibble(palavra = stopwords(\"pt\", source = \"stopwords-iso\"))\n\n# Com extrair_discursos() — coluna TextoResumo\npalavras_freq &lt;- discursos |&gt;\n  filter(!is.na(TextoResumo)) |&gt;\n  unnest_tokens(palavra, TextoResumo) |&gt;\n  anti_join(sw_pt, by = \"palavra\") |&gt;\n  filter(nchar(palavra) &gt; 2) |&gt;\n  count(palavra, sort = TRUE) |&gt;\n  slice_head(n = 20)\n\n# Com extrair_pronunciamentos_multi() — coluna Resumo_Pronunciamento\npalavras_freq_multi &lt;- pronunciamentos |&gt;\n  filter(!is.na(Resumo_Pronunciamento)) |&gt;\n  unnest_tokens(palavra, Resumo_Pronunciamento) |&gt;\n  anti_join(sw_pt, by = \"palavra\") |&gt;\n  filter(nchar(palavra) &gt; 2) |&gt;\n  count(palavra, sort = TRUE) |&gt;\n  slice_head(n = 20)\n\npalavras_freq\n#&gt; # A tibble: 20 × 2\n#&gt;    palavra              n\n#&gt;    &lt;chr&gt;            &lt;int&gt;\n#&gt;  1 senhor             312\n#&gt;  2 brasil             198\n#&gt;  3 governo            187\n#&gt;  4 aprovação          143\n#&gt;  ...\n\n\n\n\n\n\nTipAnálise de sentimentos e tópicos\n\n\n\nPara análises mais avançadas de texto, combine senatebR com pacotes de NLP:\n\ntidytext — análise tidy de texto\nquanteda — corpus e análise de frequência\nstm — modelagem de tópicos estrutural\nlexiconPT — léxico de sentimentos em português (disponível no CRAN)\n\n# install.packages(\"lexiconPT\")\nlibrary(lexiconPT)\n\n# Carregar léxico de sentimentos em português (OpLexicon v3.0)\ndata(\"oplexicon_v3.0\")\n\nsentimentos &lt;- pronunciamentos |&gt;\n  filter(!is.na(Resumo_Pronunciamento)) |&gt;\n  unnest_tokens(palavra, Resumo_Pronunciamento) |&gt;\n  inner_join(oplexicon_v3.0, by = c(\"palavra\" = \"term\")) |&gt;\n  group_by(Codigo_Parlamentar) |&gt;\n  summarise(polaridade_media = mean(polarity), .groups = \"drop\")\n\n\n\n\n\n\nNote\n\n\n\nsentimentBR não está no CRAN. Use lexiconPT como alternativa mantida e disponível para instalação via install.packages(\"lexiconPT\").",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Discursos e Pronunciamentos</span>"
+    ]
+  },
+  {
+    "objectID": "07-discursos.html#exercício",
+    "href": "07-discursos.html#exercício",
+    "title": "8  Discursos e Pronunciamentos",
+    "section": "8.6 Exercício",
+    "text": "8.6 Exercício\n\n\n\n\n\n\nNoteExercício 7.1\n\n\n\nSenadores de oposição discursam mais do que senadores da base do governo? A lógica seria que a oposição usa a tribuna como instrumento de visibilidade e pressão, enquanto a situação prefere agir nos bastidores.\nEscolha 4 senadores — 2 de partidos de governo, 2 de oposição. Compare o volume mensal de pronunciamentos em 2023. Há picos que coincidem com eventos políticos específicos? As palavras mais frequentes de cada grupo são diferentes?\n# Substitua pelos códigos de senadores que você escolheu\ncodigos &lt;- c(\"5672\", \"5386\", \"945\", \"22\")\npronunciamentos &lt;- extrair_pronunciamentos_multi(\n  codigos_parlamentares = codigos,\n  anos                  = 2023\n)\n\n\n\n\n\n\n\n\nTipUma resposta possível\n\n\n\n\n\nlibrary(senatebR)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(lubridate)\nlibrary(tidytext)\nlibrary(stopwords)\n\ncodigos &lt;- c(\"5672\", \"5386\", \"945\", \"22\")\n\npronunciamentos &lt;- extrair_pronunciamentos_multi(\n  codigos_parlamentares = codigos,\n  anos                  = 2023\n)\n\n# Volume mensal — busque picos que coincidam com eventos políticos\npronunciamentos |&gt;\n  filter(!is.na(Data_Pronunciamento)) |&gt;\n  mutate(Mes = floor_date(as.Date(Data_Pronunciamento, \"%d/%m/%Y\"), \"month\")) |&gt;\n  count(Codigo_Parlamentar, Mes) |&gt;\n  ggplot(aes(x = Mes, y = n, color = Codigo_Parlamentar)) +\n  geom_line(linewidth = 1) +\n  labs(title = \"Volume mensal de pronunciamentos (2023)\",\n       x = NULL, y = \"Pronunciamentos\", color = \"Código\") +\n  theme_minimal()\n\n# Palavras mais frequentes por senador\nsw_pt &lt;- tibble(palavra = stopwords(\"pt\", source = \"stopwords-iso\"))\n\npronunciamentos |&gt;\n  filter(!is.na(Resumo_Pronunciamento)) |&gt;\n  unnest_tokens(palavra, Resumo_Pronunciamento) |&gt;\n  anti_join(sw_pt, by = \"palavra\") |&gt;\n  filter(nchar(palavra) &gt; 3) |&gt;\n  count(Codigo_Parlamentar, palavra, sort = TRUE) |&gt;\n  group_by(Codigo_Parlamentar) |&gt;\n  slice_head(n = 10) |&gt;\n  ggplot(aes(x = reorder(palavra, n), y = n)) +\n  geom_col(fill = \"#6a4c93\") +\n  coord_flip() +\n  facet_wrap(~ Codigo_Parlamentar, scales = \"free_y\") +\n  labs(title = \"Top 10 palavras por senador (resumos, 2023)\",\n       x = NULL, y = NULL) +\n  theme_minimal()\nSenadores de oposição tendem a usar mais palavras como “denúncia” e “irregularidade”; senadores da base usam “aprovação” e “investimento”. A análise de tópicos com stm (cap. 9) permite formalizar essa distinção.",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Discursos e Pronunciamentos</span>"
+    ]
+  },
+  {
+    "objectID": "08-agenda.html",
+    "href": "08-agenda.html",
+    "title": "9  Agenda, Vetos e Medidas Provisórias",
+    "section": "",
+    "text": "9.1 Agenda do Senado\nO que está acontecendo no Senado hoje? Quais MPs estão com o prazo esgotando? Quais vetos presidenciais aguardam apreciação? Este capítulo cobre as funções de monitoramento em tempo real da atividade legislativa.\nA função info_agenda() recebe vetores de anos, meses e dias:\nAs colunas principais:",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Agenda, Vetos e Medidas Provisórias</span>"
+    ]
+  },
+  {
+    "objectID": "08-agenda.html#agenda-do-senado",
+    "href": "08-agenda.html#agenda-do-senado",
+    "title": "9  Agenda, Vetos e Medidas Provisórias",
+    "section": "",
+    "text": "library(senatebR)\n\n# Agenda de um mês específico — ajuste o ano e mês conforme necessário\nagenda &lt;- info_agenda(\n  anos  = 2024,\n  meses = 6,\n  dias  = 1:30\n)\nglimpse(agenda)\n#&gt; Rows: 18\n#&gt; Columns: 6\n#&gt; $ Data   &lt;chr&gt; \"2024-06-04\", \"2024-06-05\", ...\n#&gt; $ Hora   &lt;chr&gt; \"14:00\", \"10:00\", ...\n#&gt; $ Orgao  &lt;chr&gt; \"Plenário do Senado\", \"CCJ\", ...\n#&gt; $ Evento &lt;chr&gt; \"Sessão Deliberativa Ordinária\", \"Reunião de Comissão\", ...\n#&gt; $ Local  &lt;chr&gt; \"Plenário Petrônio Portela\", \"Sala nº 2\", ...\n#&gt; $ Status &lt;chr&gt; \"Realizado\", \"Realizado\", ...\n\n\n\n\nColuna\nDescrição\n\n\n\n\nData\nData da sessão ou evento\n\n\nHora\nHorário de início\n\n\nOrgao\nÓrgão responsável (plenário ou comissão)\n\n\nEvento\nDescrição do tipo de evento\n\n\nLocal\nLocal de realização\n\n\nStatus\nSituação (\"Realizado\", \"Cancelado\", etc.)\n\n\n\n\n\n\n\n\n\nTip\n\n\n\nPara consultar a agenda da semana atual, use lubridate para extrair ano, mês e dias:\nlibrary(lubridate)\n\nhoje &lt;- Sys.Date()\nagenda_semana &lt;- info_agenda(\n  anos  = year(hoje),\n  meses = month(hoje),\n  dias  = day(hoje):(day(hoje) + 6)\n)",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Agenda, Vetos e Medidas Provisórias</span>"
+    ]
+  },
+  {
+    "objectID": "08-agenda.html#vetos-presidenciais",
+    "href": "08-agenda.html#vetos-presidenciais",
+    "title": "9  Agenda, Vetos e Medidas Provisórias",
+    "section": "9.2 Vetos presidenciais",
+    "text": "9.2 Vetos presidenciais\nO Senado aprecia os vetos presidenciais a projetos aprovados pelo Congresso.\n\n9.2.1 Lista de vetos\nvetos &lt;- info_vetos(pages = 1)\nglimpse(vetos)\n#&gt; Rows: 20\n#&gt; Columns: 6\n#&gt; $ Veto          &lt;chr&gt; \"VET 16110/2024\", \"VET 16049/2023\", ...\n#&gt; $ Link          &lt;chr&gt; \"https://www.congressonacional.leg.br/...\", ...\n#&gt; $ Ementa        &lt;chr&gt; \"Veto parcial ao PL 1234/2023...\", ...\n#&gt; $ Sobresta      &lt;chr&gt; \"Não\", \"Sim\", ...\n#&gt; $ Materia_Vetada &lt;chr&gt; \"PL 1234/2023\", \"PEC 45/2019\", ...\n#&gt; $ Norma_Gerada  &lt;chr&gt; NA, \"Lei 14.973/2024\", ...\nAs colunas:\n\n\n\n\n\n\n\nColuna\nDescrição\n\n\n\n\nVeto\nIdentificação do veto (ex: \"VET 16110/2024\")\n\n\nLink\nURL da página do veto no Congresso Nacional\n\n\nEmenta\nDescrição resumida do veto\n\n\nSobresta\nSe o veto está com a tramitação sobrestada (\"Sim\"/\"Não\")\n\n\nMateria_Vetada\nMatéria que originou o veto\n\n\nNorma_Gerada\nLei gerada após apreciação (quando já aprovada)\n\n\n\n\n\n9.2.2 Detalhes de vetos via URL\nextrair_detalhes_vetos() e dados_vetos() trabalham com URLs das páginas de veto no site do Congresso. Use a coluna Link obtida de info_vetos():\nvetos &lt;- info_vetos(pages = 1)\n\n# Usar as URLs da coluna Link\nurls_vetos &lt;- vetos$Link[1:2]\n\n# Metadados de cada veto\ndetalhes &lt;- extrair_detalhes_vetos(urls = urls_vetos)\n\n# Partes vetadas (artigos/parágrafos vetados)\npartes_vetadas &lt;- dados_vetos(urls = urls_vetos)\n\n\n\n\n\n\nWarning\n\n\n\nextrair_detalhes_vetos() e dados_vetos() fazem web scraping do site do Congresso Nacional. Se o site estiver fora do ar ou mudar sua estrutura HTML, as funções podem retornar dados incompletos.",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Agenda, Vetos e Medidas Provisórias</span>"
+    ]
+  },
+  {
+    "objectID": "08-agenda.html#medidas-provisórias",
+    "href": "08-agenda.html#medidas-provisórias",
+    "title": "9  Agenda, Vetos e Medidas Provisórias",
+    "section": "9.3 Medidas Provisórias",
+    "text": "9.3 Medidas Provisórias\nAs Medidas Provisórias têm força de lei imediata e precisam ser apreciadas pelo Congresso em até 120 dias.\n\n9.3.1 Em tramitação\nmps_tramitacao &lt;- coletar_medidas_provisorias_em_tramitacao()\nglimpse(mps_tramitacao)\n#&gt; Rows: 12\n#&gt; Columns: 5\n#&gt; $ Link    &lt;chr&gt; \"https://www.congressonacional.leg.br/...\", ...\n#&gt; $ Matéria &lt;chr&gt; \"MPV 1234/2024\", \"MPV 1210/2024\", ...\n#&gt; $ Ementa  &lt;chr&gt; \"Dispõe sobre crédito extraordinário...\", ...\n#&gt; $ Prazo   &lt;chr&gt; \"12/07/2024\", \"06/05/2024\", ...\n#&gt; $ Status  &lt;chr&gt; \"Em tramitação\", \"Em tramitação\", ...\nAs colunas:\n\n\n\n\n\n\n\nColuna\nDescrição\n\n\n\n\nLink\nURL da página da MP no Congresso Nacional\n\n\nMatéria\nIdentificação da MP (ex: \"MPV 1234/2024\")\n\n\nEmenta\nDescrição do conteúdo da MP\n\n\nPrazo\nData limite para votação no Congresso (formato \"DD/MM/YYYY\")\n\n\nStatus\nSituação atual\n\n\n\n\n\n9.3.2 Encerradas\nO argumento numero_ultima_pagina controla quantas páginas serão coletadas (cada página retorna ~10 MPs):\n# Coletar a primeira página de MPs encerradas\nmps_encerradas &lt;- coletar_medidas_provisorias_encerradas(numero_ultima_pagina = 1)\nglimpse(mps_encerradas)\n#&gt; Rows: 10\n#&gt; Columns: 6\n#&gt; $ Link              &lt;chr&gt; \"https://www.congressonacional.leg.br/...\", ...\n#&gt; $ MPV               &lt;chr&gt; \"MPV 1200/2023\", \"MPV 1185/2023\", ...\n#&gt; $ Título            &lt;chr&gt; \"Institui o programa...\", ...\n#&gt; $ Ementa            &lt;chr&gt; \"Dispõe sobre...\", ...\n#&gt; $ Prazo.de.60.dias  &lt;chr&gt; \"27/02/2024\", \"11/01/2024\", ...\n#&gt; $ Prazo.de.emendas  &lt;chr&gt; \"17/01/2024\", \"02/12/2023\", ...\nAs colunas:\n\n\n\n\n\n\n\nColuna\nDescrição\n\n\n\n\nLink\nURL da página da MP\n\n\nMPV\nIdentificação da MP (ex: \"MPV 1200/2023\")\n\n\nTítulo\nTítulo abreviado\n\n\nEmenta\nDescrição do conteúdo\n\n\nPrazo.de.60.dias\nPrazo inicial de 60 dias (formato \"DD/MM/YYYY\")\n\n\nPrazo.de.emendas\nPrazo para emendas no Congresso\n\n\n\n# Coletar mais páginas para uma amostra maior\nmps_encerradas_amplo &lt;- coletar_medidas_provisorias_encerradas(numero_ultima_pagina = 5)\n\n\n\n\n\n\nNote\n\n\n\nDiferente de coletar_medidas_provisorias_em_tramitacao(), a versão encerrada não possui uma coluna Status com o destino final da MP (aprovada, caducada, etc.). Para identificar o destino, analise o campo Ementa ou Título.",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Agenda, Vetos e Medidas Provisórias</span>"
+    ]
+  },
+  {
+    "objectID": "08-agenda.html#análise-prazo-das-medidas-provisórias-em-tramitação",
+    "href": "08-agenda.html#análise-prazo-das-medidas-provisórias-em-tramitação",
+    "title": "9  Agenda, Vetos e Medidas Provisórias",
+    "section": "9.4 Análise: prazo das Medidas Provisórias em tramitação",
+    "text": "9.4 Análise: prazo das Medidas Provisórias em tramitação\nlibrary(dplyr)\nlibrary(lubridate)\n\nmps_tramitacao &lt;- coletar_medidas_provisorias_em_tramitacao()\n\n# Converter o prazo e calcular dias restantes\nmps_tramitacao |&gt;\n  mutate(\n    prazo_data   = as.Date(Prazo, \"%d/%m/%Y\"),\n    dias_restantes = as.numeric(prazo_data - Sys.Date())\n  ) |&gt;\n  arrange(dias_restantes) |&gt;\n  select(Matéria, Ementa, prazo_data, dias_restantes)",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Agenda, Vetos e Medidas Provisórias</span>"
+    ]
+  },
+  {
+    "objectID": "08-agenda.html#partidos",
+    "href": "08-agenda.html#partidos",
+    "title": "9  Agenda, Vetos e Medidas Provisórias",
+    "section": "9.5 Partidos",
+    "text": "9.5 Partidos\n# Lista de partidos registrados\npartidos &lt;- obter_dados_partidos()\nhead(partidos)\n#&gt; # A tibble: 6 × 5\n#&gt;   Codigo Sigla  Nome                                DataCriacao DataExtincao\n#&gt;   &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;                               &lt;chr&gt;       &lt;chr&gt;\n#&gt; 1 36     AVANTE Avante                              2017-09-06  &lt;NA&gt;\n#&gt; 2 15     MDB    Movimento Democrático Brasileiro    1966-04-05  &lt;NA&gt;\n#&gt; 3 20     NOVO   Partido Novo                        2011-02-12  &lt;NA&gt;\n#&gt; 4 23     PL     Partido Liberal                     1985-01-01  &lt;NA&gt;\n#&gt; 5 11     PP     Progressistas                       1995-11-30  &lt;NA&gt;\n#&gt; 6 55     PSD    Partido Social Democrático          2011-09-27  &lt;NA&gt;\nAs colunas:\n\n\n\nColuna\nDescrição\n\n\n\n\nCodigo\nCódigo interno do partido\n\n\nSigla\nSigla (ex: \"PL\", \"MDB\")\n\n\nNome\nNome completo\n\n\nDataCriacao\nData de fundação/registro\n\n\nDataExtincao\nData de extinção (NA para partidos ativos)",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Agenda, Vetos e Medidas Provisórias</span>"
+    ]
+  },
+  {
+    "objectID": "08-agenda.html#exercício",
+    "href": "08-agenda.html#exercício",
+    "title": "9  Agenda, Vetos e Medidas Provisórias",
+    "section": "9.6 Exercício",
+    "text": "9.6 Exercício\n\n\n\n\n\n\nNoteExercício 8.1\n\n\n\nMedidas Provisórias têm prazo de 120 dias — mas na prática isso é respeitado? Colete as MPs em tramitação e calcule quantos dias restam para cada uma. Alguma está com prazo negativo (já vencido)?\nCompare o ritmo de edição de MPs usando o número embutido na coluna MPV (ex: \"MPV 1234/2024\"): MPs com números maiores são mais recentes. Há algum padrão temporal — anos eleitorais editam mais MPs?\nmps_ativas     &lt;- coletar_medidas_provisorias_em_tramitacao()\nmps_encerradas &lt;- coletar_medidas_provisorias_encerradas(numero_ultima_pagina = 3)\n\n\n\n\n\n\n\n\nTipUma resposta possível\n\n\n\n\n\nlibrary(senatebR)\nlibrary(dplyr)\nlibrary(lubridate)\nlibrary(ggplot2)\n\nmps_ativas &lt;- coletar_medidas_provisorias_em_tramitacao()\n\n# Dias restantes para cada MP\nmps_com_prazo &lt;- mps_ativas |&gt;\n  mutate(\n    prazo_data     = as.Date(Prazo, \"%d/%m/%Y\"),\n    dias_restantes = as.numeric(prazo_data - Sys.Date())\n  )\n\nmps_com_prazo |&gt;\n  arrange(dias_restantes) |&gt;\n  select(Matéria, prazo_data, dias_restantes, Ementa)\n\n# Extrair o ano a partir do identificador \"MPV XXXX/AAAA\"\nmps_enc &lt;- coletar_medidas_provisorias_encerradas(numero_ultima_pagina = 5)\n\nmps_enc |&gt;\n  mutate(Ano = as.integer(stringr::str_extract(MPV, \"\\\\d{4}$\"))) |&gt;\n  filter(!is.na(Ano)) |&gt;\n  count(Ano) |&gt;\n  ggplot(aes(x = Ano, y = n)) +\n  geom_col(fill = \"#f4a261\") +\n  labs(title = \"MPs encerradas por ano de edição\",\n       x = NULL, y = \"Quantidade\") +\n  theme_minimal()",
+    "crumbs": [
+      "Comunicação e Agenda",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Agenda, Vetos e Medidas Provisórias</span>"
+    ]
+  },
+  {
+    "objectID": "09-visualizacao.html",
+    "href": "09-visualizacao.html",
+    "title": "10  Visualização de Dados Legislativos",
+    "section": "",
+    "text": "10.1 Paleta de cores recomendada\nUse cores_senado[[\"azul_escuro\"]] para acessar uma cor específica pelo nome.",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Visualização de Dados Legislativos</span>"
+    ]
+  },
+  {
+    "objectID": "09-visualizacao.html#paleta-de-cores-recomendada",
+    "href": "09-visualizacao.html#paleta-de-cores-recomendada",
+    "title": "10  Visualização de Dados Legislativos",
+    "section": "",
+    "text": "# Cores institucionais do Senado\ncores_senado &lt;- c(\n  azul_escuro  = \"#003580\",\n  azul_medio   = \"#1a6fa8\",\n  azul_claro   = \"#5ba4cf\",\n  dourado      = \"#c9a84c\",\n  cinza_escuro = \"#3d3d3d\",\n  cinza_claro  = \"#e8e8e8\"\n)",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Visualização de Dados Legislativos</span>"
+    ]
+  },
+  {
+    "objectID": "09-visualizacao.html#composição-do-senado-gráfico-de-barras",
+    "href": "09-visualizacao.html#composição-do-senado-gráfico-de-barras",
+    "title": "10  Visualização de Dados Legislativos",
+    "section": "10.2 Composição do Senado: gráfico de barras",
+    "text": "10.2 Composição do Senado: gráfico de barras\nlibrary(senatebR)\nlibrary(dplyr)\nlibrary(ggplot2)\n\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x))\n\nsenadores |&gt;\n  count(SiglaPartidoParlamentar, sort = TRUE) |&gt;\n  ggplot(aes(x = reorder(SiglaPartidoParlamentar, n), y = n,\n             fill = n &gt; 5)) +\n  geom_col(show.legend = FALSE) +\n  scale_fill_manual(values = c(\"FALSE\" = \"#5ba4cf\", \"TRUE\" = \"#003580\")) +\n  coord_flip() +\n  labs(\n    title    = \"Composição do Senado Federal por partido\",\n    subtitle = \"57ª Legislatura (2023–2027)\",\n    x = NULL, y = \"Número de senadores\",\n    caption  = \"Fonte: API do Senado Federal via senatebR\"\n  ) +\n  theme_minimal(base_size = 13) +\n  theme(plot.title = element_text(face = \"bold\"))",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Visualização de Dados Legislativos</span>"
+    ]
+  },
+  {
+    "objectID": "09-visualizacao.html#presença-nas-votações-gráfico-de-barras-com-gradiente-de-cor",
+    "href": "09-visualizacao.html#presença-nas-votações-gráfico-de-barras-com-gradiente-de-cor",
+    "title": "10  Visualização de Dados Legislativos",
+    "section": "10.3 Presença nas votações: gráfico de barras com gradiente de cor",
+    "text": "10.3 Presença nas votações: gráfico de barras com gradiente de cor\nO gráfico abaixo mostra a taxa de presença individual de cada senador. Embora seja às vezes chamado de “heatmap”, trata-se de um gráfico de barras horizontais com cor proporcional à presença — a estrutura de dados não é matricial.\nlibrary(tidyr)\n\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x))\n\n# Votações dos primeiros 15 senadores\ncodigos  &lt;- senadores$CodigoParlamentar[1:15]\nvotacoes &lt;- coletar_votacoes_multiplos(codigos, anos = 2023)\n\n# votacoes_SiglaDescricaoVoto: \"Sim\", \"Não\", \"AP\", \"MIS\", \"P-NRV\", \"Votou\"\n# Consideramos ausente: AP (Atividade parlamentar) e MIS (Missão)\npresenca &lt;- votacoes |&gt;\n  mutate(presente = !votacoes_SiglaDescricaoVoto %in% c(\"AP\", \"MIS\")) |&gt;\n  group_by(codigo_senador) |&gt;\n  summarise(taxa_presenca = mean(presente, na.rm = TRUE), .groups = \"drop\") |&gt;\n  left_join(\n    senadores |&gt; select(CodigoParlamentar, NomeParlamentar, SiglaPartidoParlamentar),\n    by = c(\"codigo_senador\" = \"CodigoParlamentar\")\n  )\n\n# Visualizar\nggplot(presenca,\n       aes(x = reorder(NomeParlamentar, taxa_presenca),\n           y = taxa_presenca,\n           fill = taxa_presenca)) +\n  geom_col() +\n  scale_fill_gradient(low = \"#f4a261\", high = \"#003580\",\n                      labels = scales::percent) +\n  scale_y_continuous(labels = scales::percent) +\n  coord_flip() +\n  labs(\n    title = \"Taxa de presença nas votações nominais (2023)\",\n    x = NULL, y = \"Presença\", fill = \"Presença\"\n  ) +\n  theme_minimal()\n\n\n\n\n\n\nTip\n\n\n\nPara um heatmap matricial real (senadores × votações), use geom_tile() com a matriz de votos construída no Capítulo 6.",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Visualização de Dados Legislativos</span>"
+    ]
+  },
+  {
+    "objectID": "09-visualizacao.html#evolução-temporal-linha-do-tempo-legislativa",
+    "href": "09-visualizacao.html#evolução-temporal-linha-do-tempo-legislativa",
+    "title": "10  Visualização de Dados Legislativos",
+    "section": "10.4 Evolução temporal: linha do tempo legislativa",
+    "text": "10.4 Evolução temporal: linha do tempo legislativa\nlibrary(lubridate)\n\nmaterias &lt;- materias_legislatura_atual()\n\n# AnoMateria contém apenas o ano (ex: \"2024\") — não há coluna de data completa\nmaterias |&gt;\n  filter(!is.na(AnoMateria)) |&gt;\n  mutate(Ano = as.integer(AnoMateria)) |&gt;\n  count(Ano, SiglaSubtipoMateria) |&gt;\n  filter(SiglaSubtipoMateria %in% c(\"PL\", \"PEC\", \"MPV\")) |&gt;\n  ggplot(aes(x = Ano, y = n, color = SiglaSubtipoMateria)) +\n  geom_line(linewidth = 1) +\n  geom_point(size = 2) +\n  scale_color_manual(values = c(PL = \"#003580\", PEC = \"#c9a84c\",\n                                MPV = \"#e76f51\")) +\n  labs(\n    title  = \"Volume de matérias legislativas por tipo e ano\",\n    x = NULL, y = \"Quantidade\", color = \"Tipo\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"bottom\")",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Visualização de Dados Legislativos</span>"
+    ]
+  },
+  {
+    "objectID": "09-visualizacao.html#mapa-do-brasil-senadores-por-estado",
+    "href": "09-visualizacao.html#mapa-do-brasil-senadores-por-estado",
+    "title": "10  Visualização de Dados Legislativos",
+    "section": "10.5 Mapa do Brasil: senadores por estado",
+    "text": "10.5 Mapa do Brasil: senadores por estado\n# Requer o pacote geobr\n# install.packages(\"geobr\")\nlibrary(geobr)\n\nestados &lt;- read_state(showProgress = FALSE)\n\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x))\n\nsenadores_uf &lt;- senadores |&gt;\n  count(UfParlamentar, name = \"n_senadores\")\n\nmapa_dados &lt;- estados |&gt;\n  left_join(senadores_uf, by = c(\"abbrev_state\" = \"UfParlamentar\"))\n\nggplot(mapa_dados) +\n  geom_sf(aes(fill = n_senadores), color = \"white\", linewidth = 0.3) +\n  scale_fill_gradient(low = \"#c6dbef\", high = \"#003580\",\n                      name = \"Senadores\") +\n  labs(\n    title   = \"Número de senadores em exercício por estado\",\n    caption = \"Fonte: senatebR\"\n  ) +\n  theme_void() +\n  theme(plot.title = element_text(face = \"bold\", hjust = 0.5))\n\n\n\n\n\n\nNote\n\n\n\nO pacote geobr precisa de conexão à internet para baixar as geometrias dos estados na primeira execução. Instale com install.packages(\"geobr\") se ainda não tiver.",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Visualização de Dados Legislativos</span>"
+    ]
+  },
+  {
+    "objectID": "09-visualizacao.html#tabelas-com-gt",
+    "href": "09-visualizacao.html#tabelas-com-gt",
+    "title": "10  Visualização de Dados Legislativos",
+    "section": "10.6 Tabelas com gt",
+    "text": "10.6 Tabelas com gt\n# install.packages(\"gt\")\nlibrary(gt)\nlibrary(tidyr)\n\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x))\n\nsenadores |&gt;\n  count(SiglaPartidoParlamentar, UfParlamentar) |&gt;\n  pivot_wider(names_from = UfParlamentar, values_from = n,\n              values_fill = 0) |&gt;\n  gt(rowname_col = \"SiglaPartidoParlamentar\") |&gt;\n  tab_header(\n    title    = \"Senadores por partido e estado\",\n    subtitle = \"57ª Legislatura\"\n  ) |&gt;\n  data_color(\n    method  = \"numeric\",\n    palette = \"Blues\"\n  )\n\n\n\n\n\n\nTip\n\n\n\nTabelas gt são renderizadas automaticamente em documentos Quarto e R Markdown. No console interativo do R, use print() para visualizá-las no Viewer do RStudio.",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Visualização de Dados Legislativos</span>"
+    ]
+  },
+  {
+    "objectID": "10-estudos-de-caso.html",
+    "href": "10-estudos-de-caso.html",
+    "title": "11  Estudos de Caso",
+    "section": "",
+    "text": "11.1 Estudo de caso 1: Quem são os senadores mais ativos?\nNeste estudo, cruzamos presença em votações, número de discursos e participação em comissões para construir um índice de atividade parlamentar.",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Estudos de Caso</span>"
+    ]
+  },
+  {
+    "objectID": "10-estudos-de-caso.html#estudo-de-caso-1-quem-são-os-senadores-mais-ativos",
+    "href": "10-estudos-de-caso.html#estudo-de-caso-1-quem-são-os-senadores-mais-ativos",
+    "title": "11  Estudos de Caso",
+    "section": "",
+    "text": "library(senatebR)\nlibrary(dplyr)\nlibrary(ggplot2)\n\n# 1. Coletar dados base\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x))\n\ncodigos &lt;- senadores$CodigoParlamentar\n\n# 2. Presença em votações (2023)\n#    votacoes_SiglaDescricaoVoto: Sim, Não, P-NRV, Votou = presente; AP, MIS = ausente\nvotacoes &lt;- coletar_votacoes_multiplos(codigos, anos = 2023)\n\npresenca &lt;- votacoes |&gt;\n  mutate(presente = !votacoes_SiglaDescricaoVoto %in% c(\"AP\", \"MIS\")) |&gt;\n  group_by(codigo_senador) |&gt;\n  summarise(taxa_presenca  = mean(presente, na.rm = TRUE),\n            total_votacoes = n(),\n            .groups = \"drop\")\n\n# 3. Volume de discursos (2023)\n#    extrair_pronunciamentos_multi() usa Codigo_Parlamentar (com sublinhado)\npronunciamentos &lt;- extrair_pronunciamentos_multi(\n  codigos_parlamentares = codigos,\n  anos                  = 2023\n)\n\nn_discursos &lt;- pronunciamentos |&gt;\n  count(Codigo_Parlamentar, name = \"n_discursos\")\n\n# 4. Participação em comissões\n#    obter_dados_comissoes_parlamentares() retorna CodigoParlamentar e\n#    IdentificacaoComissao.SiglaComissao\ncomissoes &lt;- obter_dados_comissoes_parlamentares(codigos)\n\nn_comissoes &lt;- comissoes |&gt;\n  count(CodigoParlamentar, name = \"n_comissoes\")\n\n# 5. Combinar e criar índice (z-score de cada dimensão)\n#    as.vector() converte a matrix retornada por scale() para vetor\nindice &lt;- senadores |&gt;\n  select(CodigoParlamentar, NomeParlamentar, SiglaPartidoParlamentar) |&gt;\n  left_join(presenca,    by = c(\"CodigoParlamentar\" = \"codigo_senador\")) |&gt;\n  left_join(n_discursos, by = c(\"CodigoParlamentar\" = \"Codigo_Parlamentar\")) |&gt;\n  left_join(n_comissoes, by = \"CodigoParlamentar\") |&gt;\n  mutate(across(\n    c(taxa_presenca, n_discursos, n_comissoes),\n    ~ as.vector(scale(.)),\n    .names = \"{.col}_z\"\n  )) |&gt;\n  mutate(indice_atividade = taxa_presenca_z + n_discursos_z + n_comissoes_z) |&gt;\n  arrange(desc(indice_atividade))\n\n# 6. Top 15\nindice |&gt;\n  slice_head(n = 15) |&gt;\n  ggplot(aes(x = reorder(NomeParlamentar, indice_atividade),\n             y = indice_atividade,\n             fill = SiglaPartidoParlamentar)) +\n  geom_col() +\n  coord_flip() +\n  labs(\n    title = \"Índice de atividade parlamentar (2023)\",\n    x = NULL, y = \"Índice (z-score combinado)\", fill = \"Partido\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Estudos de Caso</span>"
+    ]
+  },
+  {
+    "objectID": "10-estudos-de-caso.html#estudo-de-caso-2-disciplina-partidária-nas-votações",
+    "href": "10-estudos-de-caso.html#estudo-de-caso-2-disciplina-partidária-nas-votações",
+    "title": "11  Estudos de Caso",
+    "section": "11.2 Estudo de caso 2: Disciplina partidária nas votações",
+    "text": "11.2 Estudo de caso 2: Disciplina partidária nas votações\nQuanto os senadores seguem a orientação do seu líder de bancada?\n\n\n\n\n\n\nNote\n\n\n\nEste estudo envolve múltiplas requisições à API (uma por data de sessão). Use Sys.sleep(0.5) entre chamadas para evitar sobrecarga. Com 20 datas, o processo leva cerca de 1–2 minutos.\n\n\n# 1. Votações nominais de 2023 — colunas reais:\n#    Votos.CodigoParlamentar, Votos.SiglaPartido, Votos.Voto, CodigoSessaoVotacao, DataSessao\nnominais &lt;- extrair_votacoes_nominais_por_ano(anos = 2023) |&gt;\n  filter(Secreta == \"N\",\n         Votos.Voto %in% c(\"Sim\", \"Não\"))\n\n# 2. Orientações de bancada — uma requisição por data de sessão\ndatas &lt;- unique(nominais$DataSessao)[1:20]\n\norientacoes &lt;- lapply(datas, function(d) {\n  Sys.sleep(0.5)\n  tryCatch(\n    coletar_orientacao_votacao(data_sessao = d),\n    error = function(e) NULL\n  )\n}) |&gt;\n  bind_rows()\n# orientacoes tem colunas: codigo_votacao, partido, voto (orientação do líder)\n\n# 3. Cruzar votos individuais (Votos.SiglaPartido) com orientação (partido)\n#    e votação (CodigoSessaoVotacao ↔ codigo_votacao)\ndisciplina &lt;- nominais |&gt;\n  left_join(\n    orientacoes,\n    by = c(\"CodigoSessaoVotacao\" = \"codigo_votacao\",\n           \"Votos.SiglaPartido\"  = \"partido\")\n  ) |&gt;\n  filter(!is.na(voto),                          # orientação disponível\n         voto %in% c(\"Sim\", \"Não\")) |&gt;          # excluir \"Liberado\", \"Obstrução\"\n  mutate(seguiu_orientacao = Votos.Voto == voto) |&gt;\n  group_by(Votos.SiglaPartido) |&gt;\n  summarise(\n    disciplina = mean(seguiu_orientacao),\n    n_votos    = n(),\n    .groups    = \"drop\"\n  ) |&gt;\n  filter(n_votos &gt;= 20) |&gt;\n  arrange(desc(disciplina))\n\nprint(disciplina)",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Estudos de Caso</span>"
+    ]
+  },
+  {
+    "objectID": "10-estudos-de-caso.html#estudo-de-caso-3-agenda-legislativa-e-janelas-eleitorais",
+    "href": "10-estudos-de-caso.html#estudo-de-caso-3-agenda-legislativa-e-janelas-eleitorais",
+    "title": "11  Estudos de Caso",
+    "section": "11.3 Estudo de caso 3: Agenda legislativa e janelas eleitorais",
+    "text": "11.3 Estudo de caso 3: Agenda legislativa e janelas eleitorais\nInvestigue se o volume de apresentação de projetos aumenta em anos eleitorais.\nlibrary(lubridate)\n\nmaterias &lt;- materias_legislatura_atual()\n\n# AnoMateria contém apenas o ano (ex: \"2024\") — não há coluna de data completa\nmaterias |&gt;\n  filter(!is.na(AnoMateria)) |&gt;\n  mutate(\n    Ano = as.integer(AnoMateria),\n    # Anos eleitorais municipais: múltiplos de 4 (2020, 2024...)\n    # Anos eleitorais gerais: múltiplos de 4 + 2 (2022, 2026...)\n    ano_eleitoral = (Ano %% 4 == 2) | (Ano %% 4 == 0)\n  ) |&gt;\n  count(Ano, ano_eleitoral) |&gt;\n  ggplot(aes(x = Ano, y = n, fill = ano_eleitoral)) +\n  geom_col() +\n  scale_fill_manual(\n    values = c(\"FALSE\" = \"#5ba4cf\", \"TRUE\" = \"#e76f51\"),\n    labels = c(\"Não eleitoral\", \"Eleitoral\")\n  ) +\n  labs(\n    title = \"Matérias apresentadas por ano\",\n    subtitle = \"Anos eleitorais em destaque (municipais e gerais)\",\n    x = NULL, y = \"Quantidade\", fill = NULL\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Estudos de Caso</span>"
+    ]
+  },
+  {
+    "objectID": "10-estudos-de-caso.html#estudo-de-caso-4-redes-de-coautoria",
+    "href": "10-estudos-de-caso.html#estudo-de-caso-4-redes-de-coautoria",
+    "title": "11  Estudos de Caso",
+    "section": "11.4 Estudo de caso 4: Redes de coautoria",
+    "text": "11.4 Estudo de caso 4: Redes de coautoria\nQuais senadores apresentam matérias em conjunto com mais frequência?\n# install.packages(\"igraph\")\n# install.packages(\"ggraph\")\nlibrary(igraph)\nlibrary(ggraph)\nlibrary(dplyr)\nlibrary(tidyr)\n\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x))\n\ncodigos  &lt;- senadores$CodigoParlamentar[1:30]\nautorias &lt;- coletar_autorias_parlamentares(cod_parlamentares = codigos)\n\n# Criar todos os pares de coautores por matéria (não apenas os dois primeiros)\npares &lt;- autorias |&gt;\n  group_by(CodigoMateria) |&gt;\n  filter(n() &gt;= 2) |&gt;\n  summarise(\n    # combn() gera todas as combinações de 2 autores\n    pares = list(as.data.frame(\n      t(combn(CodigoParlamentar, 2)),\n      stringsAsFactors = FALSE\n    )),\n    .groups = \"drop\"\n  ) |&gt;\n  unnest(pares) |&gt;\n  rename(autor1 = V1, autor2 = V2)\n\n# Contar frequência de cada par (peso da aresta)\npares_freq &lt;- pares |&gt;\n  count(autor1, autor2, name = \"peso\")\n\n# Grafo ponderado\ng &lt;- graph_from_data_frame(pares_freq, directed = FALSE)\n\nggraph(g, layout = \"fr\") +\n  geom_edge_link(aes(width = peso), alpha = 0.4, color = \"#5ba4cf\") +\n  geom_node_point(size = 3, color = \"#003580\") +\n  geom_node_label(aes(label = name), repel = TRUE, size = 3,\n                  max.overlaps = 15) +\n  scale_edge_width(range = c(0.5, 3)) +\n  labs(title = \"Rede de coautorias de matérias\",\n       subtitle = \"Espessura da aresta proporcional ao número de coautorias\") +\n  theme_void()\n\n\n\n\n\n\nTipIndo além\n\n\n\nCombine senatebR com outras fontes de dados:\n\nCâmara dos Deputados: pacote congressbr ou API em dados.camara.leg.br\nTSE: dados eleitorais em dadosabertos.tse.jus.br\nDiário Oficial: https://in.gov.br/servicos/diario-oficial-da-uniao\nIBGE / territórios: pacote geobr para dados territoriais e mapas",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Estudos de Caso</span>"
+    ]
+  },
+  {
+    "objectID": "comunicacao.html",
+    "href": "comunicacao.html",
+    "title": "12  Comunicando Resultados com Quarto",
+    "section": "",
+    "text": "12.1 O que é um documento Quarto\nVocê produziu uma análise. Agora precisa compartilhá-la. O Quarto — a plataforma que gera este próprio livro — permite transformar um script R em relatório HTML, PDF, apresentação de slides ou dashboard com pequenas mudanças de configuração.\nUm arquivo .qmd mistura texto em Markdown com blocos de código R:\nO YAML no topo (---) controla o formato de saída. Mude format: html para format: pdf ou format: revealjs e o mesmo documento vira outro tipo de artefato.",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Comunicando Resultados com Quarto</span>"
+    ]
+  },
+  {
+    "objectID": "comunicacao.html#o-que-é-um-documento-quarto",
+    "href": "comunicacao.html#o-que-é-um-documento-quarto",
+    "title": "12  Comunicando Resultados com Quarto",
+    "section": "",
+    "text": "---\ntitle: \"Coesão Partidária no Senado\"\nauthor: \"Seu Nome\"\ndate: today\nformat: html\n---\n\n## Análise\n\n```{r}\nlibrary(senatebR)\nlibrary(dplyr)\n\nnominais &lt;- extrair_votacoes_nominais_por_ano(anos = 2023)\n```",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Comunicando Resultados com Quarto</span>"
+    ]
+  },
+  {
+    "objectID": "comunicacao.html#relatório-html",
+    "href": "comunicacao.html#relatório-html",
+    "title": "12  Comunicando Resultados com Quarto",
+    "section": "12.2 Relatório HTML",
+    "text": "12.2 Relatório HTML\nO formato mais versátil. Permite abas, gráficos interativos, código colapsável.\n---\ntitle: \"Análise das Votações do Senado — 2023\"\nauthor: \"Seu Nome\"\ndate: today\nformat:\n  html:\n    toc: true          # sumário lateral\n    code-fold: true    # código colapsável\n    theme: flatly\nexecute:\n  echo: true\n  warning: false\n---\n\n\n\n\n\n\nTip\n\n\n\ncode-fold: true oculta o código por padrão mas permite que o leitor o expanda. Ideal para relatórios onde o público é misto (técnico e não técnico).",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Comunicando Resultados com Quarto</span>"
+    ]
+  },
+  {
+    "objectID": "comunicacao.html#relatório-pdf",
+    "href": "comunicacao.html#relatório-pdf",
+    "title": "12  Comunicando Resultados com Quarto",
+    "section": "12.3 Relatório PDF",
+    "text": "12.3 Relatório PDF\nÚtil para documentos formais, artigos e TCCs. Requer uma instalação LaTeX — a mais simples é via tinytex:\ninstall.packages(\"tinytex\")\ntinytex::install_tinytex()\n---\ntitle: \"Análise das Votações do Senado — 2023\"\nformat:\n  pdf:\n    documentclass: article\n    papersize: a4\n    lang: pt-BR\n    number-sections: true\nexecute:\n  echo: false    # oculta o código no PDF — só os resultados\n---",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Comunicando Resultados com Quarto</span>"
+    ]
+  },
+  {
+    "objectID": "comunicacao.html#apresentação-de-slides",
+    "href": "comunicacao.html#apresentação-de-slides",
+    "title": "12  Comunicando Resultados com Quarto",
+    "section": "12.4 Apresentação de slides",
+    "text": "12.4 Apresentação de slides\nO formato revealjs gera apresentações HTML interativas a partir do mesmo código de análise. Separe slides com ##:\n---\ntitle: \"Senado em Números\"\nformat:\n  revealjs:\n    theme: simple\n    slide-number: true\n    lang: pt-BR\nexecute:\n  echo: false\n---\n\n## Composição por partido\n\n```{r}\n#| fig-width: 8\n#| fig-height: 5\nsenadores |&gt;\n  count(SiglaPartidoParlamentar, sort = TRUE) |&gt;\n  ggplot(aes(reorder(SiglaPartidoParlamentar, n), n)) +\n  geom_col(fill = \"#003580\") +\n  coord_flip() +\n  theme_minimal()",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Comunicando Resultados com Quarto</span>"
+    ]
+  },
+  {
+    "objectID": "comunicacao.html#coesão-partidária",
+    "href": "comunicacao.html#coesão-partidária",
+    "title": "12  Comunicando Resultados com Quarto",
+    "section": "12.5 Coesão partidária",
+    "text": "12.5 Coesão partidária\n```{r}\n# gráfico de coesão aqui\n```\n\n## Controle de execução por bloco\n\nCada bloco de código tem opções próprias com `#|`:\n\n```r\n#| echo: false      # não mostra o código\n#| warning: false   # suprime avisos\n#| fig-cap: \"Composição do Senado Federal, 57ª Legislatura\"\n#| fig-width: 8\n#| fig-height: 5\n#| cache: true      # reusa resultado se o código não mudou\n\nsenadores |&gt;\n  count(SiglaPartidoParlamentar) |&gt;\n  ggplot(...)\n\n\n\n\n\n\nTipcache: true em blocos lentos\n\n\n\nPara blocos que chamam a API do Senado, use #| cache: true. O Quarto salva o resultado e pula a execução nas renderizações seguintes enquanto o código não mudar — equivalente ao saveRDS/readRDS do capítulo de workflow, mas automático.",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Comunicando Resultados com Quarto</span>"
+    ]
+  },
+  {
+    "objectID": "comunicacao.html#publicar-na-web-com-quarto-pub",
+    "href": "comunicacao.html#publicar-na-web-com-quarto-pub",
+    "title": "12  Comunicando Resultados com Quarto",
+    "section": "12.6 Publicar na web com Quarto Pub",
+    "text": "12.6 Publicar na web com Quarto Pub\nO destino mais simples para publicar um documento Quarto publicamente:\n# No terminal, dentro do diretório do projeto\nquarto publish quarto-pub\nNa primeira vez, o comando abre o navegador para autenticação. Depois disso, uma linha atualiza a publicação.\nAlternativas: - GitHub Pages: quarto publish gh-pages (requer repositório no GitHub) - Posit Connect / shinyapps.io: para análises com elementos interativos Shiny - Netlify: quarto publish netlify",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Comunicando Resultados com Quarto</span>"
+    ]
+  },
+  {
+    "objectID": "comunicacao.html#exemplo-completo-relatório-de-atividade-parlamentar",
+    "href": "comunicacao.html#exemplo-completo-relatório-de-atividade-parlamentar",
+    "title": "12  Comunicando Resultados com Quarto",
+    "section": "12.7 Exemplo completo: relatório de atividade parlamentar",
+    "text": "12.7 Exemplo completo: relatório de atividade parlamentar\nO bloco abaixo é um documento .qmd completo que pode ser renderizado diretamente:\n---\ntitle: \"Atividade Parlamentar — Senado Federal 2023\"\ndate: today\nformat:\n  html:\n    toc: true\n    code-fold: true\n    theme: flatly\nexecute:\n  echo: true\n  warning: false\n  message: false\n---\n\n## Composição do Senado\n\n```{r}\nlibrary(senatebR)\nlibrary(dplyr)\nlibrary(ggplot2)\n\nsenadores &lt;- obter_dados_senadores_legislatura(57, 57) |&gt;\n  rename_with(~ gsub(\"IdentificacaoParlamentar\\\\.\", \"\", .x)) |&gt;\n  filter(!is.na(SiglaPartidoParlamentar), !is.na(UfParlamentar))\n\nsenadores |&gt;\n  count(SiglaPartidoParlamentar, sort = TRUE) |&gt;\n  ggplot(aes(reorder(SiglaPartidoParlamentar, n), n)) +\n  geom_col(fill = \"#003580\") + coord_flip() +\n  labs(title = \"Senadores por partido\", x = NULL, y = NULL) +\n  theme_minimal()\n```\n\n## Coesão nas votações\n\n```{r}\nnominais &lt;- extrair_votacoes_nominais_por_ano(anos = 2023) |&gt;\n  filter(Secreta == \"N\", Votos.Voto %in% c(\"Sim\", \"Não\", \"Abstenção\"))\n\ncoesao &lt;- nominais |&gt;\n  group_by(Votos.SiglaPartido, CodigoSessaoVotacao) |&gt;\n  mutate(voto_maj = names(sort(table(Votos.Voto), decreasing = TRUE))[1]) |&gt;\n  summarise(coesao = mean(Votos.Voto == voto_maj), n = n(), .groups = \"drop\") |&gt;\n  filter(n &gt;= 3) |&gt;\n  group_by(Votos.SiglaPartido) |&gt;\n  summarise(coesao_media = mean(coesao), .groups = \"drop\")\n\nggplot(coesao, aes(reorder(Votos.SiglaPartido, coesao_media), coesao_media)) +\n  geom_col(fill = \"#003580\") + coord_flip() +\n  scale_y_continuous(labels = scales::percent) +\n  labs(title = \"Coesão partidária (2023)\", x = NULL, y = \"Coesão média\") +\n  theme_minimal()\n```\nSalve como relatorio.qmd e renderize com:\nquarto::quarto_render(\"relatorio.qmd\")\nOu pelo botão Render no RStudio.",
+    "crumbs": [
+      "Análise Aplicada",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Comunicando Resultados com Quarto</span>"
+    ]
+  }
+]
